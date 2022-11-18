@@ -16,6 +16,18 @@ We are using the R Package CTIS to get access to the API Interface, more informa
 ```{r Data Import}
 devtools::install_github("CaroHaensch/CTIS")
 library(CTIS)
+
+CTIS_open_data_country(country = "Germany")
+
+head(CTIS_open_data_country(indicator = "anxious_7d", type = "daily", 
+                            country = "Germany", daterange = "20210101-20211231"))
+
+countrylist <- list("Germany", "France", "India")
+
+
+lapply(countrylist, function(x){CTIS_open_data_country(indicator = "anxious_7d", type = "daily", 
+                                                       country = x, daterange = "20210101-20211231")})
+
 ```
 
 ## Including Plots
