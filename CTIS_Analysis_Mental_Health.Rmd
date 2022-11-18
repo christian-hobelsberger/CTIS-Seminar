@@ -16,17 +16,34 @@ We are using the R Package CTIS to get access to the API Interface, more informa
 ```{r Data Import}
 devtools::install_github("CaroHaensch/CTIS")
 library(CTIS)
+library(tidyverse)
+library(reshape2)
 
-CTIS_open_data_country(country = "Germany")
+indicator_list = list("anxious_7d", "depressed_7d", "worried_become_ill", "finance", "food_security")
 
-head(CTIS_open_data_country(indicator = "anxious_7d", type = "daily", 
-                            country = "Germany", daterange = "20210101-20211231"))
+data <- unlist(lapply(X = indicator_list, 
+               FUN = function(x){
+                 CTIS_open_data_country(indicator = x, type = "daily", country = "all", daterange = "")
+                 }))
+data <- as.data.frame(do.call(rbind, data))
 
-countrylist <- list("Germany", "France", "India")
 
+```
 
-lapply(countrylist, function(x){CTIS_open_data_country(indicator = "anxious_7d", type = "daily", 
-                                                       country = x, daterange = "20210101-20211231")})
+## Data Wrangling
+
+We are using the R Package CTIS to get access to the API Interface, more information on <https://github.com/CaroHaensch/CTIS>.
+
+```{r Data Import}
+data$data.country <- as.factor(data$data.country)
+
+data$data.survey_date <- as.Date(x = data$data.survey_date, "%Y%m%d")
+
+table(data$data.country) >= 600
+
+sum(table(data$data.country) >= 600)
+
+head(data)
 
 ```
 
