@@ -9,11 +9,11 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Data Import
+## Data Import & Wrangling
 
 We are using the R Package CTIS to get access to the API Interface, more information on <https://github.com/CaroHaensch/CTIS>.
 
-```{r Data Import}
+```{r Data Import & Wrangling}
 devtools::install_github("CaroHaensch/CTIS")
 library(CTIS)
 library(tidyverse)
@@ -21,13 +21,23 @@ library(reshape2)
 
 indicator_list = list("anxious_7d", "depressed_7d", "worried_become_ill", "finance", "food_security")
 
-data <- unlist(lapply(X = indicator_list, 
+data <- lapply(X = indicator_list, 
                FUN = function(x){
                  CTIS_open_data_country(indicator = x, type = "daily", country = "all", daterange = "")
-                 }))
+                 })
 data <- as.data.frame(do.call(rbind, data))
+data_trimmed <- data[,c(1:5, 7)]
+data_aggregated <- dcast(data = data_trimmed, 
+                         formula = data.country+data.iso_code+data.gid_0+data.survey_date~data.indicator, 
+                         value.var = "data.pct")
 
+data_aggregated$data.country <- as.factor(data_aggregated$data.country)
 
+data_aggregated$data.survey_date <- as.Date(x = data_aggregated$data.survey_date, "%Y%m%d")
+
+sum(table(data_aggregated$data.country) >= 600)
+
+head(data_aggregated)
 ```
 
 ## Data Wrangling
