@@ -32,37 +32,128 @@ data_aggregated <- dcast(data = data_trimmed,
                          value.var = "data.pct")
 
 data_aggregated$data.country <- as.factor(data_aggregated$data.country)
+data_aggregated$data.iso_code <- as.factor(data_aggregated$data.iso_code)
+data_aggregated$data.gid_0 <- as.factor(data_aggregated$data.gid_0)
 
 data_aggregated$data.survey_date <- as.Date(x = data_aggregated$data.survey_date, "%Y%m%d")
 
+
+
+write.csv(data_aggregated,"data/data_aggregated.csv", row.names = FALSE)
+```
+
+## Chris: First look at data
+
+Brief first look at the CTIS data.
+
+```{r Chris: Data glimpse}
+# Read data
+data_CTIS = read.csv(file = "data/data_aggregated.csv")
+data_CTIS$data.country <- as.factor(data_CTIS$data.country)
+data_CTIS$data.iso_code <- as.factor(data_CTIS$data.iso_code)
+data_CTIS$data.gid_0 <- as.factor(data_CTIS$data.gid_0)
+
+data_CTIS$data.survey_date <- as.Date(x = data_CTIS$data.survey_date)
+
+# Number of NAs for each row
+colSums(is.na(data_aggregated))
+
+# Number of countries with equal or more than 600 observations
 sum(table(data_aggregated$data.country) >= 600)
 
-head(data_aggregated)
+# Names of the countries with equal or more than 600 observations
+names_sufficient_data = names(which(table(data_aggregated$data.country) >= 600))
+names_sufficient_data
+
+# Get the 10 countries with the highest amount of observations
+names(sort(table(data_aggregated$data.country), decreasing = TRUE)[1:10])
+
+head(data_CTIS)
+
+summary(data_CTIS)
+
+# Get mean anxious_7d for each country
+data_CTIS %>% group_by(data.country) %>% summarise(mean(anxious_7d, na.rm = TRUE))
+
+# Arrange by mean_anxious_7d of each country
+mean_anxious_7d_arranged <- data_CTIS %>% 
+  filter(data.country %in% names_sufficient_data) %>%
+  group_by(data.country) %>% 
+  summarise(mean_anxious_7d = mean(anxious_7d, na.rm = TRUE)) %>% 
+  arrange(mean_anxious_7d)
+
+# Arrange by median_anxious_7d of each country
+median_anxious_7d_arranged <- data_CTIS %>% 
+  filter(data.country %in% names_sufficient_data) %>%
+  group_by(data.country) %>% 
+  summarise(median_anxious_7d = median(anxious_7d, na.rm = TRUE)) %>% 
+  arrange(median_anxious_7d)
+
+# Calculating correlation between anxious_7d and depressed_7d: 0.8064084
+drop_na(data_CTIS[, 5:6]) |> cor()
+
+
+# First set of plot
+country_subset1 <- c("Germany", "Mexico", "South Africa")
+data_CTIS_country_subset1 = data_CTIS %>%
+  filter(data.country %in% country_subset1)
+
+ggplot(data = data_CTIS_country_subset1, 
+       mapping = aes(x = data.survey_date, y = anxious_7d, color = data.country)) +
+  geom_line()
+
+ggplot(data = data_CTIS_country_subset1, 
+       mapping = aes(x = data.survey_date, y = depressed_7d, color = data.country)) +
+  geom_line()
+
+ggplot(data = data_CTIS_country_subset1, 
+       mapping = aes(y = anxious_7d, color = data.country)) +
+  geom_boxplot()
+
+ggplot(data = data_CTIS_country_subset1, 
+       mapping = aes(y = depressed_7d, color = data.country)) +
+  geom_boxplot()
+
+# Second set of plot
+country_subset2 = c("Denmark", "India", "Turkey")
+data_CTIS_country_subset2 = data_CTIS %>%
+  filter(data.country %in% country_subset2)
+
+ggplot(data = data_CTIS_country_subset2, 
+       mapping = aes(x = data.survey_date, y = anxious_7d, color = data.country)) +
+  geom_line()
+
+ggplot(data = data_CTIS_country_subset2, 
+       mapping = aes(x = data.survey_date, y = depressed_7d, color = data.country)) +
+  geom_line()
+
+ggplot(data = data_CTIS_country_subset2, 
+       mapping = aes(y = anxious_7d, color = data.country)) +
+  geom_boxplot()
+
+ggplot(data = data_CTIS_country_subset2, 
+       mapping = aes(y = depressed_7d, color = data.country)) +
+  geom_boxplot()
+
+# Third set of plot
+country_subset3 = c("Norway", "Hungary", "Egypt")
+data_CTIS_country_subset3 = data_CTIS %>%
+  filter(data.country %in% country_subset3)
+
+ggplot(data = data_CTIS_country_subset3, 
+       mapping = aes(x = data.survey_date, y = anxious_7d, color = data.country)) +
+  geom_line()
+
+ggplot(data = data_CTIS_country_subset3, 
+       mapping = aes(x = data.survey_date, y = depressed_7d, color = data.country)) +
+  geom_line()
+
+ggplot(data = data_CTIS_country_subset3, 
+       mapping = aes(y = anxious_7d, color = data.country)) +
+  geom_boxplot()
+
+ggplot(data = data_CTIS_country_subset3, 
+       mapping = aes(y = depressed_7d, color = data.country)) +
+  geom_boxplot()
 ```
 
-## Data Wrangling
-
-We are using the R Package CTIS to get access to the API Interface, more information on <https://github.com/CaroHaensch/CTIS>.
-
-```{r Data Import}
-data$data.country <- as.factor(data$data.country)
-
-data$data.survey_date <- as.Date(x = data$data.survey_date, "%Y%m%d")
-
-table(data$data.country) >= 600
-
-sum(table(data$data.country) >= 600)
-
-head(data)
-
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
