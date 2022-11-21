@@ -56,17 +56,17 @@ data_CTIS$data.gid_0 <- as.factor(data_CTIS$data.gid_0)
 data_CTIS$data.survey_date <- as.Date(x = data_CTIS$data.survey_date)
 
 # Number of NAs for each row
-colSums(is.na(data_aggregated))
+colSums(is.na(data_CTIS))
 
 # Number of countries with equal or more than 600 observations
-sum(table(data_aggregated$data.country) >= 600)
+sum(table(data_CTIS$data.country) >= 600)
 
 # Names of the countries with equal or more than 600 observations
-names_sufficient_data = names(which(table(data_aggregated$data.country) >= 600))
+names_sufficient_data = names(which(table(data_CTIS$data.country) >= 600))
 names_sufficient_data
 
 # Get the 10 countries with the highest amount of observations
-names(sort(table(data_aggregated$data.country), decreasing = TRUE)[1:10])
+names(sort(table(data_CTIS$data.country), decreasing = TRUE)[1:10])
 
 head(data_CTIS)
 
