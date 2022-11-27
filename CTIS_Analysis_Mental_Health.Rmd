@@ -191,13 +191,13 @@ ggplot(data = data_CTIS_total_subset,
        mapping = aes(y = anxious_7d, color = data.country)) +
   geom_boxplot() +
   labs(title = "anxious_7d Boxplot")
-ggsave("graphics/anxious_7d_boxplo.png", width = 12, height = 9)
+ggsave("graphics/anxious_7d_boxplot.png", width = 12, height = 9)
 
 ggplot(data = data_CTIS_total_subset, 
        mapping = aes(y = depressed_7d, color = data.country)) +
   geom_boxplot() +
   labs(title = "depressed_7d Boxplot")
-ggsave("graphics/depressed_7d_boxplo.png", width = 12, height = 9)
+ggsave("graphics/depressed_7d_boxplot.png", width = 12, height = 9)
 
 ```
 
