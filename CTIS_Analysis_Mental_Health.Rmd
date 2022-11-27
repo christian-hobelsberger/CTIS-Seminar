@@ -7,6 +7,12 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+devtools::install_github("CaroHaensch/CTIS")
+library(CTIS)
+library(tidyverse)
+library(reshape2)
+library(corrplot)
+library(countrycode)
 ```
 
 ## Data Import & Wrangling
@@ -14,13 +20,6 @@ knitr::opts_chunk$set(echo = TRUE)
 We are using the R Package CTIS to get access to the API Interface, more information on <https://github.com/CaroHaensch/CTIS>.
 
 ```{r Data Import & Wrangling}
-devtools::install_github("CaroHaensch/CTIS")
-library(CTIS)
-library(tidyverse)
-library(reshape2)
-library(corrplot)
-library(countrycode)
-
 indicator_list = list("anxious_7d", "depressed_7d", "worried_become_ill", "finance", "food_security")
 
 data <- lapply(X = indicator_list, 
@@ -114,6 +113,7 @@ mean_anxious_7d_arranged <- data_CTIS %>%
   group_by(data.country) %>% 
   summarise(mean_anxious_7d = mean(anxious_7d, na.rm = TRUE)) %>% 
   arrange(mean_anxious_7d)
+mean_anxious_7d_arranged
 
 # Arrange by median_anxious_7d of each country
 median_anxious_7d_arranged <- data_CTIS %>% 
@@ -122,9 +122,14 @@ median_anxious_7d_arranged <- data_CTIS %>%
   summarise(median_anxious_7d = median(anxious_7d, na.rm = TRUE)) %>% 
   arrange(median_anxious_7d)
 
-# Calculating correlation between anxious_7d and depressed_7d: 0.8064084
+# Calculating pearson correlation between anxious_7d and depressed_7d: 0.8064084
 drop_na(data_CTIS[, 5:6]) |> cor()
 
+# Plot: Denisity of mean_anxious_7d
+ggplot(data = mean_anxious_7d_arranged, mapping = aes(y = mean_anxious_7d)) + geom_density() + 
+  coord_flip() +
+  labs(title = "Denisity of mean_anxious_7d")
+ggsave("graphics/density_mean_anxious_7d.png", width = 12, height = 9)
 
 # First set of plot
 country_subset1 <- c("Germany", "Mexico", "South Africa")
@@ -133,19 +138,15 @@ data_CTIS_country_subset1 = data_CTIS %>%
 
 ggplot(data = data_CTIS_country_subset1, 
        mapping = aes(x = data.survey_date, y = anxious_7d, color = data.country)) +
-  geom_line()
+  geom_line() +
+  labs(title = "anxious_7d vs. date (1)")
+ggsave("graphics/anxious_7d_set1.png", width = 12, height = 9)
 
 ggplot(data = data_CTIS_country_subset1, 
        mapping = aes(x = data.survey_date, y = depressed_7d, color = data.country)) +
-  geom_line()
-
-ggplot(data = data_CTIS_country_subset1, 
-       mapping = aes(y = anxious_7d, color = data.country)) +
-  geom_boxplot()
-
-ggplot(data = data_CTIS_country_subset1, 
-       mapping = aes(y = depressed_7d, color = data.country)) +
-  geom_boxplot()
+  geom_line() +
+  labs(title = "depressed_7d vs. date (1)")
+ggsave("graphics/depressed_7d_set1.png", width = 12, height = 9)
 
 # Second set of plot
 country_subset2 = c("Denmark", "India", "Turkey")
@@ -154,19 +155,15 @@ data_CTIS_country_subset2 = data_CTIS %>%
 
 ggplot(data = data_CTIS_country_subset2, 
        mapping = aes(x = data.survey_date, y = anxious_7d, color = data.country)) +
-  geom_line()
+  geom_line() +
+  labs(title = "anxious_7d vs. date (2)")
+ggsave("graphics/anxious_7d_set2.png", width = 12, height = 9)
 
 ggplot(data = data_CTIS_country_subset2, 
        mapping = aes(x = data.survey_date, y = depressed_7d, color = data.country)) +
-  geom_line()
-
-ggplot(data = data_CTIS_country_subset2, 
-       mapping = aes(y = anxious_7d, color = data.country)) +
-  geom_boxplot()
-
-ggplot(data = data_CTIS_country_subset2, 
-       mapping = aes(y = depressed_7d, color = data.country)) +
-  geom_boxplot()
+  geom_line() +
+  labs(title = "depressed_7d vs. date (2)")
+ggsave("graphics/depressed_7d_set2.png", width = 12, height = 9)
 
 # Third set of plot
 country_subset3 = c("Norway", "Hungary", "Egypt")
@@ -175,19 +172,33 @@ data_CTIS_country_subset3 = data_CTIS %>%
 
 ggplot(data = data_CTIS_country_subset3, 
        mapping = aes(x = data.survey_date, y = anxious_7d, color = data.country)) +
-  geom_line()
+  geom_line() +
+  labs(title = "anxious_7d vs. date (3)")
+ggsave("graphics/anxious_7d_set3.png", width = 12, height = 9)
 
 ggplot(data = data_CTIS_country_subset3, 
        mapping = aes(x = data.survey_date, y = depressed_7d, color = data.country)) +
-  geom_line()
+  geom_line() +
+  labs(title = "depressed_7d vs. date (3)")
+ggsave("graphics/depressed_7d_set3.png", width = 12, height = 9)
 
-ggplot(data = data_CTIS_country_subset3, 
+# Boxplots: Total subset
+total_subset <- c(country_subset1, country_subset2, country_subset3)
+data_CTIS_total_subset = data_CTIS %>%
+  filter(data.country %in% total_subset)
+
+ggplot(data = data_CTIS_total_subset, 
        mapping = aes(y = anxious_7d, color = data.country)) +
-  geom_boxplot()
+  geom_boxplot() +
+  labs(title = "anxious_7d Boxplot")
+ggsave("graphics/anxious_7d_boxplo.png", width = 12, height = 9)
 
-ggplot(data = data_CTIS_country_subset3, 
+ggplot(data = data_CTIS_total_subset, 
        mapping = aes(y = depressed_7d, color = data.country)) +
-  geom_boxplot()
+  geom_boxplot() +
+  labs(title = "depressed_7d Boxplot")
+ggsave("graphics/depressed_7d_boxplo.png", width = 12, height = 9)
+
 ```
 
 # Max
