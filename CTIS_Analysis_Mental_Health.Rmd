@@ -19,7 +19,11 @@ library(CTIS)
 library(tidyverse)
 library(reshape2)
 library(corrplot)
+library(RColorBrewer)
 library(countrycode)
+library(gganimate)
+library(gifski)
+library(maps)
 
 indicator_list = list("anxious_7d", "depressed_7d", "worried_become_ill", "finance", "food_security")
 
@@ -374,6 +378,31 @@ data_CTIS_policy %>%
   ggplot(aes(x = data.survey_date, y = continent_mean_depressd7d))+
   facet_wrap(vars(continent))+
     geom_line()
+```
+
+
+```{r}
+# data: A dataframe containing the CTIS Survey data
+# date: A string setting the date of the data (Format: 2022-03-22)
+# variable: A string containing the variable name
+
+plot_survey_world <- function(data, date, variable) {
+  map_data <- data %>% filter(data.survey_date %in% as.Date(date))
+  map_data <- joinCountryData2Map(map_data, nameJoinColumn = "data.iso_code")
+  mapCountryData(map_data, nameColumnToPlot = variable, 
+                 colourPalette = brewer.pal(7,"OrRd"), mapTitle = paste(variable, date))
+}
+
+plot_survey_world(data_CTIS_policy, "2020-04-28", "anxious_7d")
+plot_survey_world(data_CTIS_policy, "2021-01-28", "anxious_7d")
+plot_survey_world(data_CTIS_policy, "2021-04-28", "anxious_7d")
+
+
+
+
+
+
+  
 ```
 
 
