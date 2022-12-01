@@ -22,6 +22,16 @@ We are using the R Package CTIS to get access to the API Interface, more informa
 ```{r Data Import & Wrangling}
 indicator_list = list("anxious_7d", "depressed_7d", "worried_become_ill", "finance", "food_security")
 
+# Skript to Download microdata
+setwd("data/microdata")
+date_vec <- seq(as.Date("2020-04-23"), as.Date("2020-04-25"), by = "day") # Second date is end date
+username <- readline(prompt = "Enter username for CTIS login: ")
+password <- readline(prompt = "Enter password for CTIS login: ")
+for (date_index in seq_len(length(date_vec))) {
+  CTIS_microdata(username = username, password = password, date = as.character(date_vec[date_index]), type = "full")
+}
+
+
 data <- lapply(X = indicator_list, 
                FUN = function(x){
                  CTIS_open_data_country(indicator = x, type = "daily", country = "all", daterange = "")
@@ -42,7 +52,9 @@ data_aggregated$data.survey_date <- as.Date(x = data_aggregated$data.survey_date
 
 write.csv(data_aggregated,"data/data_aggregated.csv", row.names = FALSE)
 ```
-# Read our world in data (https://ourworldindata.org/policy-responses-covid)
+
+# Read our world in data (<https://ourworldindata.org/policy-responses-covid>)
+
 ```{r Policy Data Import}
 policy_income_support <- read.csv("data/ourworldindata-policy-responses/income-support-covid.csv")
 policy_stay_at_home <- read.csv("data/ourworldindata-policy-responses/stay-at-home-covid.csv")
@@ -65,14 +77,15 @@ policy_data$stay_home_requirements <- factor(policy_data$stay_home_requirements,
 policy_data$income_support <- factor(policy_data$income_support, ordered = TRUE)
 policy_data$school_closures<- factor(policy_data$school_closures, ordered = TRUE)
 ```
+
 # Large Data with policy
+
 ```{r}
 data_CTIS_policy <- data_CTIS %>% 
   left_join(policy_data, by = c("data.country", "data.iso_code", "data.survey_date" = "data.date"))
 # Adding continent
 data_CTIS_policy$continent <- countrycode(data_CTIS_policy$data.country, origin = "country.name", destination = "continent")
 ```
-
 
 ## Chris: First look at data
 
@@ -202,7 +215,9 @@ ggsave("graphics/depressed_7d_boxplot.png", width = 12, height = 9)
 ```
 
 # Max
+
 ## Data preparation
+
 ```{r Max: Data preparation}
 country_subset_large <- c("Germany", "Mexico", "South Africa", "Norway", "Hungary",
                           "Egypt", "Denmark", "India", "Turkey")
@@ -218,7 +233,9 @@ data_CTIS_policy_large <- data_CTIS_country_subset_large %>%
                                              "data.iso_code",
                                               "data.survey_date" = "data.date"))
 ```
-- Only turkey and india have level 3 stay home requirements
+
+-   Only turkey and india have level 3 stay home requirements
+
 ```{r Check for hard restricting countries}
 hard_countries <- unique(data_CTIS_policy_large %>% 
   filter(stay_home_requirements %in% 2:3 & school_closures %in% 2:3) %>% select(data.country))[["data.country"]]
@@ -227,7 +244,6 @@ data_CTIS_policy_large %>%
 ```
 
 ## Anxiety
-
 
 ```{r Anxiety over time for country selection}
 anx_hard_countries <- data_CTIS_policy_large %>% filter(data.country %in% hard_countries) %>% select(anxious_7d)
@@ -254,8 +270,8 @@ data_CTIS_policy_large %>%
   scale_color_viridis_d(option = "A")
 ```
 
-
 ## Depression
+
 ```{r Depression over time by country}
 hard_countries <- unique(data_CTIS_policy_large %>% 
   filter(stay_home_requirements %in% 2:3 & school_closures %in% 2:3) %>% select(data.country))[["data.country"]]
@@ -271,6 +287,7 @@ data_CTIS_policy_large %>%
 ```
 
 ## Correlation Matrix
+
 ```{r corrplot for subset}
 numeric_data <- data_CTIS_policy_large %>% select(anxious_7d, depressed_7d, finance, food_security, worried_become_ill, parks, workplaces, residential, transit_stations)
 cormat <- cor(numeric_data, use = "complete.obs")
@@ -279,6 +296,7 @@ corrplot(cormat, method = "color")
 ```
 
 # Scatterplot stay home park movement and anxiety
+
 ```{r}
 data_CTIS_policy_large %>% 
   #filter(data.survey_date %in% as.Date("2021-03-01")) %>% 
@@ -289,6 +307,7 @@ data_CTIS_policy_large %>%
 ```
 
 # Boxplots Stay Home requirements / school closure influence on mental health
+
 ```{r}
 data_CTIS_policy_large %>% 
   ggplot(aes(x = stay_home_requirements, y = anxious_7d))+
@@ -328,7 +347,6 @@ data_CTIS_policy_large %>%
   geom_hline(yintercept = mean(data_CTIS$finance, na.rm = TRUE))
 ```
 
-
 # Using complete data set
 
 ```{r}
@@ -345,6 +363,7 @@ data_CTIS_policy %>%
 ```
 
 # Continent grouped
+
 ```{r Anxiety continent level}
 data_CTIS_policy %>% 
   group_by(continent, data.survey_date) %>% 
@@ -361,8 +380,11 @@ data_CTIS_policy %>%
   facet_wrap(vars(continent))+
     geom_line()
 ```
+
 # Just for Europe
-- Peak in Europe in on February 27 is probably bc of Ukraine war
+
+-   Peak in Europe in on February 27 is probably bc of Ukraine war
+
 ```{r Anxiety continent level}
 data_CTIS_policy %>% 
   group_by(continent, data.survey_date) %>% 
@@ -372,11 +394,10 @@ data_CTIS_policy %>%
   facet_wrap(vars(continent))+
     geom_line()
 ```
+
 ```{r}
 data_CTIS_policy %>% filter(continent %in% "Europe") %>% filter(data.survey_date %in% as.Date("2022-02-27")) %>% select(anxious_7d, data.country) %>% arrange(desc(anxious_7d))
 ```
-
-
 
 ```{r Anxiety continent level}
 data_CTIS_policy %>% 
@@ -386,6 +407,3 @@ data_CTIS_policy %>%
   facet_wrap(vars(continent))+
     geom_line()
 ```
-
-
-
