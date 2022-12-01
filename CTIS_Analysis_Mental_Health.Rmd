@@ -459,7 +459,7 @@ tm_shape(mapdata)+
 ```{r}
 plot_global_map <- function(data, variable, survey_date, mode = "plot", ...){
   mapdata <- data %>% 
-  select(continent, variable, geometry, data.country, data.iso_code, data.survey_date) %>% 
+  select(continent, variable, geometry, data.country, data.iso_code, data.survey_date, school_closures, stay_home_requirements) %>% 
   filter(data.survey_date %in% as.Date(survey_date))
 # If we filter for specific data we lose geometries for countries with no obs at that data therefore   we need to add the geo data + NA for survey data
   missing_countries <- setdiff(world$data.country, mapdata$data.country)
@@ -480,7 +480,7 @@ plot_global_map <- function(data, variable, survey_date, mode = "plot", ...){
 ```{r}
 plot_continent_map <- function(data, variable, area, survey_date, mode = "plot", ...){
   mapdata <- data %>% 
-  select(continent, variable, geometry, data.country, data.iso_code, data.survey_date) %>% 
+  select(continent, variable, geometry, data.country, data.iso_code, data.survey_date, school_closures, stay_home_requirements) %>% 
   filter(data.survey_date %in% as.Date(survey_date)) %>% 
   filter(continent %in% area)
 
@@ -492,8 +492,8 @@ plot_continent_map <- function(data, variable, area, survey_date, mode = "plot",
 ```
 
 ```{r}
-plot_global_map(data_CTIS_map, variable = "anxious_7d",survey_date = "2021-01-28", mode = "view", id = "data.country", popup.vars = c("Anxiety last 7 days:" = "anxious_7d"))
+plot_global_map(data_CTIS_map, variable = "anxious_7d",survey_date = "2021-01-28", mode = "view", id = "data.country", popup.vars = c("Anxiety last 7 days:" = "anxious_7d", "Stay home req. level" = "stay_home_requirements:", "School closure level" = "school_closures"))
 
-plot_continent_map(data_CTIS_map, variable = "anxious_7d", area = "Europe", survey_date = "2021-01-28", mode = "view", id = "data.country", popup.vars = c("Anxiety last 7 days:" = "anxious_7d"))
+plot_continent_map(data_CTIS_map, variable = "anxious_7d", area = "Europe", survey_date = "2021-01-28", mode = "view", id = "data.country", popup.vars = c("Anxiety last 7 days:" = "anxious_7d", "Stay home req. level" = "stay_home_requirements:", "School closure level" = "school_closures"))
 ```
 
