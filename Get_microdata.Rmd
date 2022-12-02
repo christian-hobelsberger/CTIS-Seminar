@@ -1,0 +1,76 @@
+# Script to download and later combine microdata
+```{r}
+library(readr)
+library(dplyr)
+library(data.table)
+# Skript to Download microdata
+setwd("data/microdata")
+date_vec <- seq(as.Date("2020-04-23"), as.Date("2022-06-25"), by = "day") # Second date is end date
+username <- readline(prompt = "Enter username for CTIS login: ")
+password <- readline(prompt = "Enter password for CTIS login: ")
+for (date_index in seq_len(length(date_vec))) {
+  CTIS_microdata(username = username, password = password, date = as.character(date_vec[date_index]), type = "full")
+}
+
+# Combine microdata
+colum_name_vec = c("survey_region", "survey_version", "weight", "Finished", "RecordedDate", "module",
+                      "intro1", "intro2", "A1", "A2_2_1", "A2_2_2", "D1", "D2", "D4", "D5",
+                      "E3", "V11", "E4", "E8", "E2", "E5", "E7a", "D7a", "D10")
+colum_name_vec_shorted = c("survey_region", "survey_version", "weight", "Finished", "RecordedDate",
+                      "intro1", "intro2", "A1", "A2_2_1", "A2_2_2", "D1", "D2", "D4",
+                      "E3", "E4", "E2", "E5")
+# Create list of files
+csv_files <- list.files(pattern = "\\.csv$")
+
+CTIS_microdata_shorted <- data.frame()
+for (file in csv_files) {
+  CTIS_microdata_shorted <- bind_rows(CTIS_data, 
+            readr::read_csv(file = file, 
+                            col_names = TRUE, 
+                            col_select = colum_name_vec_shorted))
+}
+setwd("..")
+write_csv(x = CTIS_microdata_shorted, file = "protected_data/CTIS_microdata_shorted.csv")
+
+
+setwd("./microdata")
+csv_files <- list.files(pattern = "\\.csv$")
+CTIS_microdata <- data.frame()
+# for (file in csv_files) {
+#   print(file)
+#   CTIS_microdata <- bind_rows(CTIS_microdata, 
+#             readr::read_csv(file = file, 
+#                             col_names = TRUE, 
+#                             col_select = any_of(colum_name_vec), 
+#                             col_types = cols(survey_version = "c")))
+# }
+# 
+# csv_files_list <- as.list(list.files(pattern = "\\.csv$")[565:794])
+# 
+# day_microdata_list <- lapply(X = csv_files_list, FUN = function(X) {
+#   readr::read_csv(file = file, 
+#                             col_names = TRUE, 
+#                             col_select = any_of(colum_name_vec), 
+#                             col_types = cols(survey_version = "c"))
+# })
+# 
+# readr::read_csv(file = file, 
+#                             col_names = TRUE, 
+#                             col_select = any_of(colum_name_vec), 
+#                             col_types = cols(survey_version = "c"))
+# 
+
+for (file in csv_files) {
+  print(file)
+  CTIS_microdata <- bind_rows(CTIS_microdata, 
+            fread(file = file,
+      select = colum_name_vec, 
+      colClasses = list(character = c(1, 2, 6))))
+}
+
+
+setwd("..")
+write_csv(x = CTIS_microdata, file = "protected_data/CTIS_microdata.csv")
+
+```
+
