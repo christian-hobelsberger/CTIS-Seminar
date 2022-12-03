@@ -3,13 +3,14 @@
 library(readr)
 library(dplyr)
 library(data.table)
+library(CTIS)
 # Skript to Download microdata
 setwd("data/microdata")
 date_vec <- seq(as.Date("2020-04-23"), as.Date("2022-06-25"), by = "day") # Second date is end date
 username <- readline(prompt = "Enter username for CTIS login: ")
 password <- readline(prompt = "Enter password for CTIS login: ")
 for (date_index in seq_len(length(date_vec))) {
-  CTIS_microdata(username = username, password = password, date = as.character(date_vec[date_index]), type = "full")
+  CTIS::CTIS_microdata(username = username, password = password, date = as.character(date_vec[date_index]), type = "full")
 }
 
 # Combine microdata
