@@ -247,7 +247,15 @@ ggsave("graphics/depressed_7d_boxplot.png", width = 12, height = 9)
 ### Chris: Advanced microdata analysis
 
 ```{r Chris: microdata analysis}
+# Loading the microdata
 CTIS_microdata <- readr::read_csv(file = "data/protected_data/CTIS_microdata_complete.csv", col_names = TRUE)
+
+# Number of distinct dates
+length(unique(as.Date(CTIS_microdata$RecordedDate)))
+
+# Summary of features
+summary(CTIS_microdata)
+
 ```
 
 
