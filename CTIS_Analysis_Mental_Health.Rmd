@@ -253,8 +253,7 @@ CTIS_microdata <- readr::read_csv(file = "data/protected_data/CTIS_microdata_com
 # Number of distinct dates
 length(unique(as.Date(CTIS_microdata$RecordedDate)))
 
-# Summary of features
-summary(CTIS_microdata)
+# Get an brief overview over the data
 
 ```
 
