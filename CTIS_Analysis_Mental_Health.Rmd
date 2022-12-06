@@ -248,12 +248,14 @@ ggsave("graphics/depressed_7d_boxplot.png", width = 12, height = 9)
 
 ```{r Chris: microdata analysis}
 # Loading the microdata
-CTIS_microdata <- readr::read_csv(file = "data/protected_data/CTIS_microdata_complete.csv", col_names = TRUE)
+CTIS_microdata <- readr::read_csv(file = "data/protected_data/CTIS_microdata_clean", col_names = TRUE,
+                                  col_types = c(.default = "f", weight = "d", RecordedDate = "T"))
 
 # Number of distinct dates
 length(unique(as.Date(CTIS_microdata$RecordedDate)))
 
 # Get an brief overview over the data
+
 
 ```
 
