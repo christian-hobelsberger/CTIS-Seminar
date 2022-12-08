@@ -115,7 +115,9 @@ filter( is.na(st_dimension(.)) == FALSE )
 data_CTIS_map$continent <- countrycode(data_CTIS_map$data.country, origin = "country.name", destination = "continent")
 ```
 
-## Chris: First look at data
+## Chris
+
+### First look at data
 
 Brief first look at the CTIS data.
 
@@ -241,6 +243,22 @@ ggplot(data = data_CTIS_total_subset,
 ggsave("graphics/depressed_7d_boxplot.png", width = 12, height = 9)
 
 ```
+
+### Chris: Advanced microdata analysis
+
+```{r Chris: microdata analysis}
+# Loading the microdata
+CTIS_microdata <- readr::read_csv(file = "data/protected_data/CTIS_microdata_clean.csv", col_names = TRUE,
+                                  col_types = c(.default = "f", weight = "d", RecordedDate = "T"))
+
+# Number of distinct dates
+length(unique(as.Date(CTIS_microdata$RecordedDate)))
+
+# Get an brief overview over the data
+summary(CTIS_microdata[["E4"]])
+
+```
+
 
 # Max
 

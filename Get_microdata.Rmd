@@ -46,10 +46,45 @@ for (file in csv_files) {
                             col_types = cols(survey_version = "c")))
 }
 setwd("..")
-write_csv(x = CTIS_microdata, file = "protected_data/CTIS_microdata2.csv")
+write_csv(x = CTIS_microdata, file = "protected_data/CTIS_microdata_complete.csv")
+
+# Data Cleaning -----------------------------------------------------------
+
+# Loading the microdata
+CTIS_microdata <- readr::read_csv(file = "protected_data/CTIS_microdata_complete.csv", col_names = TRUE,
+                                  col_types = c(.default = "f", weight = "d", RecordedDate = "T"))
 
 # Validation if unique days equal number of csv files
 length(unique(as.Date(CTIS_microdata_complete$RecordedDate))) == length(csv_files)
 
+# Show levels for all factor variables
+sapply(CTIS_microdata[,-c(3,5)], levels)
+
+# Remove all observations with absurd E5 (number of people slept at the same place) values
+CTIS_microdata_clean <- 
+  CTIS_microdata[-(which(!(CTIS_microdata[["E5"]] %in% c(1:75, "NA", -99, -77)))), ]
+
+# Remove all observations with unfitting D10 (main activity of the business) values
+CTIS_microdata_clean <- 
+  CTIS_microdata_clean[-(which(!(CTIS_microdata_clean[["D10"]] %in% c(1:15, "NA", -99, -77)))), ]
+
+# Remove all observations with unfitting E7a (Number of rooms for sleeping) values
+CTIS_microdata_clean <- 
+  CTIS_microdata_clean[-(which(!(CTIS_microdata_clean[["E7a"]] %in% c(1:50, "NA", -99, -77)))), ]
+
+# Drop Levels
+CTIS_microdata_clean <- droplevels(CTIS_microdata_clean)
+
+# Show levels for all factor variables on cleaned up data
+sapply(CTIS_microdata_clean[,-c(3,5)], levels)
+
+# Refactor NAs
+CTIS_microdata_clean <- sapply(CTIS_microdata_clean[,-c(3,5)], function (X) {
+    recode_factor(X, "-99" = NA_character_, "-77" = NA_character_, "-88" = NA_character_, "NA" = NA_character_)
+    })
+CTIS_microdata_clean[CTIS_microdata_clean %in% c("NA", -99, -77, -88)] <- NA
+
+# Save clean microdata
+write_csv(x = CTIS_microdata_clean, file = "protected_data/CTIS_microdata_clean.csv")
 ```
 
