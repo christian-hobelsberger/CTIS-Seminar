@@ -537,3 +537,329 @@ plot_global_map(data_CTIS_map, variable = "anxious_7d",survey_date = "2021-01-28
 
 plot_continent_map(data_CTIS_map, variable = "anxious_7d", area = "Europe", survey_date = "2021-01-28", mode = "view", id = "data.country", popup.vars = c("Anxiety last 7 days:" = "anxious_7d", "Stay home req. level" = "stay_home_requirements:", "School closure level" = "school_closures"))
 ```
+
+
+```{r Elisa}
+########################### anxious_7d ########################################
+
+# Sorted mean anxious_7d for each country
+data_CTIS %>% group_by(data.country) %>% summarise(mean_anxious_7d = mean(anxious_7d, na.rm = TRUE)) %>% arrange(desc(mean_anxious_7d)) 
+
+# first 10 countries with highest anxious_7d
+top10_mean_anxious_7d <- data_CTIS %>% group_by(data.country) %>% summarise(mean_anxious_7d = mean(anxious_7d, na.rm = TRUE)) %>% arrange(desc(mean_anxious_7d)) %>% top_n(n = 10)
+
+# vector of first 10 countries with highest anxious_7d
+top10_countires_highest_mean_anxious <- top10_mean_anxious_7d$data.country
+
+# Boxplot for first 10 countries with highest anxious_7d
+data_CTIS %>% filter(data.country %in% top10_countires_highest_mean_anxious) %>% 
+ggplot(aes(data.country, anxious_7d)) + 
+  geom_boxplot() +
+  theme(legend.position = "bottom") +
+  geom_hline(yintercept = mean(data_CTIS$anxious_7d, na.rm = TRUE))
+
+
+## Bar plot for first 10 countries with highest anxious_7d
+data_CTIS %>% group_by(data.country) %>% filter(data.country %in% top10_countires_highest_mean_anxious) %>% summarise(mean_anxious_7d = mean(anxious_7d, na.rm = TRUE)) %>% ggplot(aes(y = mean_anxious_7d, x = data.country)) + 
+  geom_bar(stat = "identity") 
+
+# Timeline plot for first 10 countries with highest anxious_7d
+options(dplyr.summarise.inform = FALSE)
+data_CTIS %>% group_by(data.country, data.survey_date) %>% filter(data.country %in% top10_countires_highest_mean_anxious) %>% summarise(mean_anxious_7d = mean(anxious_7d, na.rm = TRUE)) %>%
+  ggplot(aes(x = data.survey_date, y = mean_anxious_7d)) + 
+  facet_wrap(vars(data.country)) + geom_line()
+
+## Timeline plot for Turkey + Tunisia
+data_CTIS %>% group_by(data.country, data.survey_date) %>% filter(data.country %in% c("Tunisia", "Turkey")) %>% summarise(mean_anxious_7d = mean(anxious_7d, na.rm = TRUE)) %>%
+  ggplot(aes(x = data.survey_date, y = mean_anxious_7d, color = data.country)) + geom_line()
+
+```
+
+```{r Elisa}
+########################### depressed_7d #######################################
+
+data_CTIS %>% group_by(data.country) %>% summarise(mean_depressed_7d = mean(depressed_7d, na.rm = TRUE)) %>% arrange(desc(mean_depressed_7d)) 
+
+# first 10 countries with highest depressed_7d
+top10_mean_depressed_7d <- data_CTIS %>% group_by(data.country) %>% summarise(mean_depressed_7d = mean(depressed_7d, na.rm = TRUE)) %>% arrange(desc(mean_depressed_7d)) %>% top_n(n = 10)
+
+# vector of first 10 countries with highest depressed_7d
+top10_countries_highest_mean_depressed <- top10_mean_depressed_7d$data.country
+
+## countries in the top 10 for anxiety and depression -> all ten except for Tanzania
+intersect(top10_countires_highest_mean_anxious, top10_countries_highest_mean_depressed)
+
+# Boxplot for first 10 countries with highest depressed_7d
+data_CTIS %>% filter(data.country %in% top10_countries_highest_mean_depressed) %>% 
+ggplot(aes(data.country, depressed_7d)) + 
+  geom_boxplot() +
+  theme(legend.position = "bottom") +
+  geom_hline(yintercept = mean(data_CTIS$depressed_7d, na.rm = TRUE))
+
+
+## Bar plot for first 10 countries with highest depressed_7d
+data_CTIS %>% group_by(data.country) %>% filter(data.country %in% top10_countries_highest_mean_depressed) %>% summarise(mean_depressed_7d = mean(depressed_7d, na.rm = TRUE)) %>% ggplot(aes(y = mean_depressed_7d, x = data.country)) + 
+  geom_bar(stat = "identity") 
+
+# Timeline plot for first 10 countries with highest depressed_7d
+options(dplyr.summarise.inform = FALSE)
+data_CTIS %>% group_by(data.country, data.survey_date) %>% filter(data.country %in% top10_countries_highest_mean_depressed) %>% summarise(mean_depressed_7d = mean(depressed_7d, na.rm = TRUE)) %>% ggplot(aes(x = data.survey_date, y = mean_depressed_7d)) + 
+  facet_wrap(vars(data.country)) + geom_line()
+
+## Timeline plot for Egypt + Iraq
+data_CTIS %>% group_by(data.country, data.survey_date) %>% filter(data.country %in% c("Egypt", "Iraq")) %>% summarise(mean_depressed_7d = mean(depressed_7d, na.rm = TRUE)) %>%
+  ggplot(aes(x = data.survey_date, y = mean_depressed_7d, color = data.country)) + geom_line()
+
+
+```
+
+
+```{r}
+############## Code from Chris
+# Number of NAs for each row
+colSums(is.na(data_CTIS))
+
+# Number of countries with equal or more than 600 observations
+sum(table(data_CTIS$data.country) >= 600)
+
+# Names of the countries with equal or more than 600 observations
+names_sufficient_data <- names(which(table(data_CTIS$data.country) >= 600))
+names_sufficient_data
+
+# Get the 10 countries with the highest amount of observations
+names(sort(table(data_CTIS$data.country), decreasing = TRUE)[1:10])
+
+head(data_CTIS)
+
+summary(data_CTIS)
+############# End code from Chris
+```
+
+
+```{r}
+############## Countries with > 600 obs. #####################################
+
+
+table(data_CTIS$data.country)
+
+# Subset of countries >= 600 observations
+countries_600_subset <- data_CTIS %>% filter(data.country %in% names_sufficient_data)
+summary(countries_600_subset)
+
+# top 10 countries with more than 600 observations
+top10 <- names(sort(table(data_CTIS$data.country), decreasing = TRUE)[1:10])
+top10_subset <- data_CTIS %>% filter(data.country %in% top10)
+
+# Argentina dataset
+Argentina_dataset <- top10_subset %>% 
+  filter(data.country == "Argentina")
+
+# Argentina plot
+Argentina_dataset %>% ggplot(mapping = aes(x = anxious_7d, 
+                         y = depressed_7d)) + geom_jitter() + geom_abline()
+
+
+# Arrange by mean_anxious_7d for countries with > 600 obs. 
+mean_anxious_7d_arranged <- data_CTIS %>% 
+  filter(data.country %in% names_sufficient_data) %>%
+  group_by(data.country) %>% 
+  summarise(mean_anxious_7d = mean(anxious_7d, na.rm = TRUE)) %>% 
+  arrange(mean_anxious_7d)
+mean_anxious_7d_arranged
+
+## first 10 countries with highest anxious and > 600 obs.
+mean_anxious_7d_top10 <- top10_subset %>%
+  group_by(data.country) %>% 
+  summarise(mean_anxious_7d = mean(anxious_7d, na.rm = TRUE)) %>% 
+  arrange(mean_anxious_7d)
+mean_anxious_7d_top10 
+
+# Bar plots for first 10 countries with > 600 obs. 
+# anxious_7d for top10 countries
+ggplot(data = mean_anxious_7d_top10, 
+       aes(y = mean_anxious_7d, x = data.country)) + 
+  geom_bar(stat = "identity") 
+
+## Arrange by mean_depressed_7d for top 10 countries (> 600 obs.)
+mean_depressed_7d_top10 <- top10_subset %>%
+  group_by(data.country) %>% 
+  summarise(mean_depressed_7d = mean(depressed_7d, na.rm = TRUE)) %>% 
+  arrange(mean_depressed_7d)
+mean_depressed_7d_top10 
+
+# depressed_7d for top10 countries
+ggplot(data = mean_depressed_7d_top10, 
+       aes(y = mean_depressed_7d, x = data.country)) + 
+  geom_bar(stat = "identity")
+
+## Arrange by food_security, finance, worried_become_ill for top 10 countries
+mean_food_finance_ill_top10 <- top10_subset %>%
+  group_by(data.country) %>% 
+      summarise(mean_ill_7d = mean(worried_become_ill, na.rm = TRUE),
+                mean_depressed_7d = mean(depressed_7d, na.rm = TRUE), 
+                mean_anxious_7d = mean(anxious_7d, na.rm = TRUE), 
+                mean_food_7d = mean(food_security, na.rm = TRUE), 
+                mean_finance_7d = mean(finance, na.rm = TRUE))
+
+mean_food_finance_ill_top10
+
+
+# food security for top10 countries
+ggplot(data = mean_food_finance_ill_top10, 
+       aes(y = mean_food_7d, x = data.country)) + 
+  geom_bar(stat = "identity")
+
+# finance for top10 countries
+ggplot(data = mean_food_finance_ill_top10, 
+       aes(y = mean_finance_7d, x = data.country)) + 
+  geom_bar(stat = "identity")
+
+# worried_become_ill for top10 countries
+ggplot(data = mean_food_finance_ill_top10, 
+       aes(y = mean_ill_7d, x = data.country)) + 
+  geom_bar(stat = "identity")
+
+
+
+```
+
+
+## Correlations
+```{r}
+library(xts)
+# correlation table 
+res <- data_CTIS %>% select(anxious_7d, depressed_7d, worried_become_ill, 
+                            finance, food_security) %>% drop_na()
+correlation <- cor(res)
+correlation
+
+## add week numbers to the dataset
+data_CTIS$week_num <- strftime(data_CTIS$data.survey_date, format = "%V")
+
+# Ukraine has the highest correlation between depressed and anxious
+data_CTIS %>%
+  group_by(data.country) %>%
+  summarize(COR=cor(depressed_7d,anxious_7d)) %>% drop_na() %>% arrange(desc(COR))
+Ukraine_data <- data_CTIS %>%  filter(data.country == "Ukraine")
+
+## correlations
+# remove not needed variables
+ukraine <- Ukraine_data %>% select(-c(1:4), -10)
+summary(ukraine)
+
+library(lares)
+corr_cross(ukraine, rm.na = T, max_pvalue = 0.05, top = 15, grid = T)
+
+# group data by week
+data_CTIS$week_num <- strftime(data_CTIS$data.survey_date, format = "%V")
+
+library(highcharter)
+
+# weekly correlation in Ukraine between depressed_7d and anxious_7d
+cor_by_week_Ukraine <- data_CTIS %>%  filter(data.country == "Ukraine") %>% group_by(week_num) %>%
+  summarize(COR=cor(depressed_7d,anxious_7d))
+
+## highchart
+highchart() %>% 
+  hc_add_series(cor_by_week_Ukraine$COR, type = "line")
+```
+
+
+```{r}
+## Connected scatterplot to show an evolution
+library(hrbrthemes)
+
+cor_by_week_Ukraine %>%
+                      ggplot(aes(x = week_num, y = COR)) + 
+    geom_line(color="grey") +
+    geom_point(shape= 21, color="black", fill="#69b3a2", size=2) + theme_ipsum() 
+
+```
+
+
+```{r}
+
+## with dygraphs
+# Turkey has highest anxious_7d
+data_CTIS_Turkey <- data_CTIS %>% filter(data.country == "Turkey")
+don <- xts(x = data_CTIS_Turkey$anxious_7d, order.by = data_CTIS_Turkey$data.survey_date)
+
+p <- dygraph(don) %>%
+  dyOptions(labelsUTC = TRUE, fillGraph=TRUE, fillAlpha=0.1, drawGrid = FALSE, colors="#D8AE5A") %>%
+  dyRangeSelector() %>%
+  dyCrosshair(direction = "vertical") %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2, hideOnMouseOut = FALSE)  %>%
+  dyRoller(rollPeriod = 1)
+p
+```
+
+```{r Correlation}
+## correlation with more plot types
+library(GGally)
+res <- data_CTIS %>% select(anxious_7d, depressed_7d, worried_become_ill, 
+                            finance, food_security) %>% drop_na()
+ggpairs(res) 
+
+## correlation of each variable as a square
+data_CTIS_map_ohnegeom <- st_set_geometry(data_CTIS_map, NULL)
+cor_map <- data_CTIS_map_ohnegeom %>% select(anxious_7d, depressed_7d, finance, 
+                                    food_security, worried_become_ill,
+                                    retail_and_recreation, grocery_and_pharmacy,
+                                    residential, transit_stations, parks, 
+                                    workplaces) %>% drop_na()
+
+ggcorr(cor_map, method = c("everything", "pearson")) 
+
+
+```
+
+```{r Correlation}
+## Correlation in the data set with policy restrictions
+ctis_map_correlation <- data_CTIS_map_ohnegeom %>% select(-c(1:4), -19) %>% drop_na()
+summary(ctis_map_correlation)
+# transform variables as numeric
+ctis_map_correlation[1:14] <- sapply(ctis_map_correlation, as.numeric)
+cor_map2 <- cor(ctis_map_correlation)
+
+# 
+ggcorr(cor_map2, method = c("everything", "pearson")) 
+
+```
+
+
+```{r}
+## countries with high correlation (> 0.9) between food security and finance
+
+cor_food_finance <- data_CTIS_map_ohnegeom %>%
+  group_by(data.country) %>% drop_na() %>%
+  summarize(COR = cor(food_security,finance))  %>% arrange(desc(COR)) %>% top_n(15)
+
+top10 <- cor_food_finance $data.country
+top10
+data <- head(cor_food_finance, 15)
+
+data_CTIS_map_ohnegeom %>% filter(data.country %in% top10) %>% ggplot(aes(x=finance, y=food_security)) +
+  geom_point()
+
+## add week numbers to the dataset
+data_CTIS_map_ohnegeom$week_num <- strftime(data_CTIS_map_ohnegeom$data.survey_date, format = "%V")
+
+
+# weekly correlation in "Brazil"  "Mexico" "Taiwan""Indonesia", "Thailand", "Colombia", "Argentina", "Portugal"   
+# "Philippines", "Chile", "India", "Peru", "France", "Spain", "Italy" between finance and food security
+
+cor_by_week <- data_CTIS_map_ohnegeom %>%  filter(data.country %in% top10) %>% group_by(week_num, data.country) %>%
+  summarize(COR=cor(finance, food_security))
+
+## highchart
+highchart() %>% 
+  hc_add_series(cor_by_week$COR, type = "line")
+
+
+ggplot(data = cor_by_week, aes(x = week_num, y = COR)) +
+    geom_line( color="grey") +
+    geom_point(shape=21, color="black", fill="#69b3a2", size=1) +
+    theme_ipsum()
+
+```
+
