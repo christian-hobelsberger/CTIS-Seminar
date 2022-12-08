@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-devtools::install_github("CaroHaensch/CTIS")
+# devtools::install_github("CaroHaensch/CTIS")
 library(CTIS)
 library(tidyverse)
 library(reshape2)
@@ -84,6 +84,10 @@ policy_data$data.date <- as.Date(policy_data$data.date)
 policy_data$stay_home_requirements <- factor(policy_data$stay_home_requirements, ordered = TRUE) 
 policy_data$income_support <- factor(policy_data$income_support, ordered = TRUE)
 policy_data$school_closures<- factor(policy_data$school_closures, ordered = TRUE)
+policy_data$data.country<- factor(policy_data$data.country)
+policy_data$data.iso_code<- factor(policy_data$data.iso_code)
+
+saveRDS(object = policy_data, file = "data/policy_data.RDS")
 ```
 
 # Large Data with policy
@@ -248,15 +252,18 @@ ggsave("graphics/depressed_7d_boxplot.png", width = 12, height = 9)
 
 ```{r Chris: microdata analysis}
 # Loading the microdata
-CTIS_microdata <- readr::read_csv(file = "data/protected_data/CTIS_microdata_clean.csv", col_names = TRUE,
-                                  col_types = c(.default = "f", weight = "d", RecordedDate = "T"))
+CTIS_microdata <- readr::read_csv(file = "data/protected_data/CTIS_microdata_cleanV2.csv", col_names = TRUE,
+                                  col_types = c(.default = "f", weight = "d", RecordedDate = "T"),
+                                  na = c("NA"))
 
 # Number of distinct dates
 length(unique(as.Date(CTIS_microdata$RecordedDate)))
 
-# Get an brief overview over the data
-summary(CTIS_microdata[["E4"]])
+# Plot: D1
+ggplot(data = CTIS_microdata, mapping = aes(y = D1)) + 
+  geom_bar()
 
+# Plot: D1 vs E4
 ```
 
 
