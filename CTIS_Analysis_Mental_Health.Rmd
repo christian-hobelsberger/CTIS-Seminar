@@ -252,18 +252,36 @@ ggsave("graphics/depressed_7d_boxplot.png", width = 12, height = 9)
 
 ```{r Chris: microdata analysis}
 # Loading the microdata
-CTIS_microdata <- readr::read_csv(file = "data/protected_data/CTIS_microdata_cleanV2.csv", col_names = TRUE,
-                                  col_types = c(.default = "f", weight = "d", RecordedDate = "T"),
-                                  na = c("NA"))
+CTIS_microdata <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
 
 # Number of distinct dates
 length(unique(as.Date(CTIS_microdata$RecordedDate)))
 
+# Table:
+
+
 # Plot: D1
-ggplot(data = CTIS_microdata, mapping = aes(y = D1)) + 
-  geom_bar()
+ggplot(data = CTIS_microdata, mapping = aes(x = D1)) + 
+  geom_bar(stat = "identity") +
+  labs(title = "D1 (nervous)")
+ggsave("graphics/depressed_7d_boxplot.png", width = 12, height = 9)
+
 
 # Plot: D1 vs E4
+ggplot(data = CTIS_microdata, mapping = aes(x = D1)) + 
+  geom_bar() +
+  facet_wrap(~E4)
+
+barplot_D1vsE4 <- ggplot(data = CTIS_microdata, aes(x = D1, group = E4)) + 
+  geom_bar(aes(y = ..prop..), stat="count") + 
+  scale_y_continuous(labels=scales::percent) +
+  ylab("relative frequencies") +
+  facet_wrap(~E4) +
+  coord_flip() +
+  labs(title = "D1 (nervous) vs E4 (Age)")
+ggsave(filename = "Plots/Chris/D1vsE4barplot.png", 
+       plot = barplot_D1vsE4, width = 12, height = 12)
+
 ```
 
 
