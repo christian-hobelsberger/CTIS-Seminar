@@ -79,6 +79,9 @@ CTIS_microdata_clean <- droplevels(CTIS_microdata_clean)
 sapply(CTIS_microdata_clean[,-c(3,5)], levels)
 
 # Refactor NAs
+CTIS_microdata_clean <- sapply(CTIS_microdata_clean[,-c(3,5)], function (X) {
+    recode_factor(X, "-99" = NA_character_, "-77" = NA_character_, "-88" = NA_character_, "NA" = NA_character_)
+    })
 CTIS_microdata_clean[CTIS_microdata_clean %in% c("NA", -99, -77, -88)] <- NA
 
 # Save clean microdata
