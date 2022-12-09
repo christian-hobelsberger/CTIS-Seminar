@@ -113,6 +113,8 @@ filter( is.na(st_dimension(.)) == FALSE )
 
 # Match Countrycode again because now new countries that were not in the survey but now joined
 data_CTIS_map$continent <- countrycode(data_CTIS_map$data.country, origin = "country.name", destination = "continent")
+
+saveRDS(data_CTIS_map, file = "shiny/ctis-app/app-data/data_CTIS_map.RDS")
 ```
 
 ## Chris
@@ -469,6 +471,7 @@ plot_survey_world(data_CTIS_policy, "2021-04-28", "anxious_7d")
 # Continent: "Asia" "Africa" "Europe" "Americas" "Oceania" | valid inputs
 area <- "Europe"
 # Variable: "anxious_7d" "finance" "depressed_7d" 
+variable_choices <- c("anxious_7d", "finance","depressed_7d", "food_security", "worried_become_ill")
 variable <- "anxious_7d"
 # survey_date
 survey_date <- "2021-01-28"
@@ -533,12 +536,16 @@ plot_continent_map <- function(data, variable, area, survey_date, mode = "plot",
 ```
 
 ```{r}
-plot_global_map(data_CTIS_map, variable = "anxious_7d",survey_date = "2021-01-28", mode = "view", id = "data.country", popup.vars = c("Anxiety last 7 days:" = "anxious_7d", "Stay home req. level" = "stay_home_requirements:", "School closure level" = "school_closures"))
+plot_global_map(data_CTIS_map, variable = "anxious_7d",survey_date = "2021-01-28", mode = "view", id = "data.country", popup.vars = c("Anxiety last 7 days:" = "anxious_7d", "Stay home req. level" = "stay_home_requirements", "School closure level" = "school_closures"))
 
-plot_continent_map(data_CTIS_map, variable = "anxious_7d", area = "Europe", survey_date = "2021-01-28", mode = "view", id = "data.country", popup.vars = c("Anxiety last 7 days:" = "anxious_7d", "Stay home req. level" = "stay_home_requirements:", "School closure level" = "school_closures"))
+plot_global_map(data_CTIS_map, variable = "anxious_7d",survey_date = "2021-01-28", mode = "plot")
+
+plot_continent_map(data_CTIS_map, variable = "anxious_7d", area = "Europe", survey_date = "2021-01-28", mode = "view", id = "data.country", popup.vars = c("Anxiety last 7 days:" = "anxious_7d", "Stay home req. level" = "stay_home_requirements", "School closure level" = "school_closures"))
 ```
 
 
+
+=======
 ```{r Elisa}
 ########################### anxious_7d ########################################
 
@@ -862,4 +869,3 @@ ggplot(data = cor_by_week, aes(x = week_num, y = COR)) +
     theme_ipsum()
 
 ```
-
