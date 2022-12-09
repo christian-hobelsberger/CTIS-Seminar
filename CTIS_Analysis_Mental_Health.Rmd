@@ -349,6 +349,8 @@ ggplot(table_D1_E4_WO_NA, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
        x = "D1 (nervous)")
 ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E4_barplot.png", width = 12, height = 9)
 
+ggplot(CTIS, aes(perc, ..count..)) + geom_bar(aes(fill = D1), position = "dodge")
+
 
 
 # Plots with data ------------------------------------------------------------------
