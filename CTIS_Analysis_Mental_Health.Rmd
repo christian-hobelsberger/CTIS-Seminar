@@ -349,8 +349,21 @@ ggplot(table_D1_E4_WO_NA, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
        x = "D1 (nervous)")
 ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E4_barplot.png", width = 12, height = 9)
 
-ggplot(CTIS, aes(perc, ..count..)) + geom_bar(aes(fill = D1), position = "dodge")
+ggplot(table_D1_E4, aes(x = D1, y = perc)) + 
+  geom_bar(mapping = aes(fill = E4), position = "dodge", stat = "identity") +
+  labs(title = "D1 (nervous) vs E4 (age group)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)",) + 
+  scale_fill_brewer(palette = "Blues", name = "E4 (age group)", na.value="black")
+ggsave("Plots/Chris/table_data/D1_vs_E4_dodge_barplot.png", width = 12, height = 9)
 
+ggplot(table_D1_E4_WO_NA, aes(x = D1, y = perc)) + 
+  geom_bar(mapping = aes(fill = E4), position = "dodge", stat = "identity") +
+  labs(title = "D1 (nervous) vs E4 (age group)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)",) + 
+  scale_fill_brewer(palette = "Blues", name = "E4 (age group)")
+ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E4_dodge_barplot.png", width = 12, height = 9)
 
 
 # Plots with data ------------------------------------------------------------------
