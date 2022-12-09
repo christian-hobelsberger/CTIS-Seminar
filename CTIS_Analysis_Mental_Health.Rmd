@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # devtools::install_github("CaroHaensch/CTIS")
 library(CTIS)
 library(tidyverse)
+library(timetk)
 library(reshape2)
 library(corrplot)
 library(ozmaps)
@@ -254,14 +255,113 @@ ggsave("graphics/depressed_7d_boxplot.png", width = 12, height = 9)
 # Loading the microdata
 CTIS_microdata <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
 
+# Create 2nd dataset without NAs
+CTIS_microdata_WO_NA <- CTIS_microdata[complete.cases(CTIS_microdata[, c("D1", "E4")]), ]
+
 # Number of distinct dates
 length(unique(as.Date(CTIS_microdata$RecordedDate)))
 
-# Table:
+# tables for faster plotting:
+table_D1 <- CTIS_microdata %>%
+  select(D1) %>%
+  group_by(D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
 
+table_D1_WO_NA <- CTIS_microdata %>%
+  drop_na() %>%
+  select(D1) %>%
+  group_by(D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+
+table_D1_E4 <- CTIS_microdata %>%
+  select(D1, E4) %>%
+  group_by(E4, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+
+table_D1_E4_WO_NA <- CTIS_microdata %>%
+  drop_na() %>%
+  select(D1, E4) %>%
+  group_by(E4, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+
+table_NA_D1_Date <- CTIS_microdata %>%
+  select(RecordedDate, D1) %>%
+  filter(is.na(D1)) %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "day",
+                    count_NA = n())
+
+table_NA_E4_Date <- CTIS_microdata %>%
+  select(RecordedDate, E4) %>%
+  filter(is.na(E4)) %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "day",
+                    count_NA = n())
+
+# Plots with tables ----------------------------------------------------------------
+
+# Plot: D1 (nervous)
+ggplot(table_D1, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
+  labs(title = "D1 (nervous)", 
+       y = "relative frequencies")
+ggsave("Plots/Chris/table_data/D1_barplot.png", width = 12, height = 9)
+
+ggplot(table_D1_WO_NA, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
+  labs(title = "D1 (nervous) - no NAs", 
+       y = "relative frequencies")
+ggsave("Plots/Chris/table_data/NO_NA_D1_barplot.png", width = 12, height = 9)
+
+
+# Plot: NAs D1 (nervous) vs RecordedDate
+ggplot(data = table_NA_D1_Date, mapping = aes(x = RecordedDate, y = count_NA)) +
+  geom_line() +
+  labs(title = "NAs D1 (nervous) vs RecordedDate",
+       y = "Count of NAs - D1 (per day)")
+ggsave("Plots/Chris/table_data/NAs_RecordedDate_D1_lineplot.png", width = 12, height = 9)
+
+
+# Plot: NAs E4 (age group) vs RecordedDate
+ggplot(data = table_NA_E5_Date, mapping = aes(x = RecordedDate, y = count_NA)) +
+  geom_line() +
+  labs(title = "NAs E4 (nervous) vs RecordedDate",
+       y = "Count of NAs - E4 (per day)")
+ggsave("Plots/Chris/table_data/NAs_RecordedDate_E4_lineplot.png", width = 12, height = 9)
+
+
+# Plot D1 (nervous) vs E4 (age group)
+ggplot(table_D1_E4, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
+  facet_wrap(~E4) +
+  coord_flip() +
+  labs(title = "D1 (nervous) vs E4 (age group)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)")
+ggsave("Plots/Chris/table_data/D1_vs_E4_barplot.png", width = 12, height = 9)
+
+ggplot(table_D1_E4_WO_NA, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
+  facet_wrap(~E4) +
+  coord_flip() +
+  labs(title = "D1 (nervous) vs E4 (age group)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)")
+ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E4_barplot.png", width = 12, height = 9)
+
+
+
+# Plots with data ------------------------------------------------------------------
 
 # Plot: D1
 ggplot(data = CTIS_microdata, mapping = aes(x = D1)) + 
+  geom_bar() + 
+  scale_y_continuous(labels=scales::percent) +
+  ylab("relative frequencies") +
+  labs(title = "D1 (nervous)")
+
+
+ggplot(data = CTIS_microdata, mapping = aes(y = D1)) + 
   geom_bar(stat = "identity") +
   labs(title = "D1 (nervous)")
 ggsave("graphics/depressed_7d_boxplot.png", width = 12, height = 9)
