@@ -1048,7 +1048,10 @@ plot_continent_map <- function(data, variable, area, survey_date, mode = "plot",
 ```
 
 ```{r}
-plot_global_map(data_CTIS_map, variable = "anxious_7d",survey_date = "2021-01-28", mode = "view", id = "data.country", popup.vars = c("Anxiety last 7 days:" = "anxious_7d", "Stay home req. level" = "stay_home_requirements", "School closure level" = "school_closures"))
+plot_global_map(data_CTIS_map, variable = "anxious_7d",survey_date = "2021-01-28", mode = "plot", 
+                id = "data.country", 
+                popup.vars = c("Anxiety last 7 days:" = "anxious_7d", 
+                               "Stay home req. level" = "stay_home_requirements", "School closure level" = "school_closures"))
 
 plot_global_map(data_CTIS_map, variable = "anxious_7d",survey_date = "2021-01-28", mode = "plot")
 

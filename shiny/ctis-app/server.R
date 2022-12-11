@@ -20,6 +20,8 @@ colnames(world) <- c("data.iso_code", "data.country", "geometry")
 
  # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
+  # Maps tab -----
+  ## Global ----
     create_mapdata <- reactive({
       mapdata <- data_CTIS_map %>% 
         select(continent, variable_choices, geometry, data.country, data.iso_code, data.survey_date, school_closures, stay_home_requirements) %>% 
@@ -36,10 +38,23 @@ shinyServer(function(input, output) {
     fill <- reactive({
       tm_fill(input$variable, id = "data.country", 
                               popup.vars = c(input$variable, "Stay home req. level" = "stay_home_requirements", "School closure level" = "school_closures"))})
-  
     output$global_map <- renderTmap(tm_shape(create_mapdata())+
                                         fill()+
                                         tm_borders())
+    ## Continent ----
+    create_cont_mapdata <- reactive({
+      cont_mapdata <- data_CTIS_map %>% 
+        select(continent, variable_choices, geometry, data.country, data.iso_code, data.survey_date, school_closures, stay_home_requirements) %>% 
+        filter(continent %in% input$continent) %>% 
+        filter(data.survey_date %in% as.Date(input$cont_date))
+    })
+    fill_cont <- reactive({
+      tm_fill(input$cont_variable, id = "data.country", 
+              popup.vars = c(input$cont_variable, "Stay home req. level" = "stay_home_requirements", "School closure level" = "school_closures"))})
+    
+    output$cont_map <- renderTmap(tm_shape(create_cont_mapdata())+
+                                    fill_cont()+
+                                    tm_borders())
 })
 
 
