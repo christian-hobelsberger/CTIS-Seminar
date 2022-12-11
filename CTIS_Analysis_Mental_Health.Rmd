@@ -99,6 +99,7 @@ data_CTIS_policy <- data_CTIS %>%
   left_join(policy_data, by = c("data.country", "data.iso_code", "data.survey_date" = "data.date"))
 # Adding continent
 data_CTIS_policy$continent <- countrycode(data_CTIS_policy$data.country, origin = "country.name", destination = "continent")
+saveRDS(object = data_CTIS_policy, file = "data/data_CTIS_policy.RDS")
 ```
 
 

@@ -3,6 +3,8 @@ library(shinythemes)
 library(shinycssloaders)
 library(tmap)
 library(tmaptools)
+library(plotly)
+
 button_color_css <- "
 #DivCompClear, #FinderClear, #EnterTimes{
 /* Change the background color of the update button
@@ -13,10 +15,13 @@ font-size: 15px;
 }"
 
 shinyUI(fluidPage(
-    navbarPage("CTIS Mental Health", theme = shinytheme("lumen"),
+    navbarPage(title = div(img(src='icon.png', style="background-color: transparent; margin-top: -10px;", height = 35), "CTIS Mental Health"),
+               theme = shinytheme("lumen"),
+      
              navbarMenu("Maps", icon = icon("map"),
                tabPanel("World maps", fluid = TRUE, icon = icon("globe"),
                tags$style(button_color_css),
+               tags$style(HTML(".datepicker {z-index:99999 !important;}")),
                sidebarLayout(
                    sidebarPanel(
                        titlePanel("Map characteristics"),
@@ -67,7 +72,71 @@ shinyUI(fluidPage(
                  )
         )
              ),
-        tabPanel("Continent Analysis", icon = icon("earth-europe"))
+        tabPanel("Continent Analysis", icon = icon("earth-europe"),
+                 sidebarLayout(
+                   sidebarPanel(
+                     titlePanel("Plot characteristics"),
+                     selectInput("cont_ana_variable",
+                                 label = "Select variable",
+                                 choices = colnames(data_CTIS_map)[5:9],
+                                 selected = "anxious_7d",
+                                 width = "220px"),
+                     selectInput("cont_ana_continent",
+                                 label = "Select continent",
+                                 choices = unique(data_CTIS_policy$continent),
+                                 selected = "Europe",
+                                 width = "220px",
+                                 multiple = TRUE)
+                   ),
+                   mainPanel(
+                     plotlyOutput("cont_ana_line")
+                   )
+                 )
+                ),
+        tabPanel("Country Analysis", icon = icon("flag"),
+          sidebarLayout(
+            sidebarPanel(
+              titlePanel("Plot characteristics"),
+              selectInput("country_ana_variable",
+                          label = "Select variable",
+                          choices = colnames(data_CTIS_map)[5:9],
+                          selected = "anxious_7d",
+                          width = "220px"),
+              selectizeInput("country_ana_country",
+                          label = "Select country",
+                          choices = unique(data_CTIS_policy$data.country),
+                          selected = "Germany",
+                          width = "220px",
+                          multiple = FALSE,
+                          )
+            ),
+            mainPanel(
+              plotOutput("country_ana_line")
+            )
+          )
+    ),
+    navbarMenu("More", icon = icon("info"),
+               tabPanel("About", icon = icon("circle-question"),
+                        fluidRow(
+                          h1("About"),
+                          p("Facebook and academic institutions have partnered to conduct the Global COVID-19 Trends and Impact Survey through the University of Maryland Social Data Science Center. The survey is offered in 56 different languages. Daily reports on themes like symptoms, social withdrawal, vaccine acceptance, mental health problems, and financial restrictions are requested from a representative sample of Facebook users. Facebook offers weights to lessen coverage bias and nonresponse. Daily country- and region-level statistics are made available to the general public via public APIs and dashboards, while microdata is made accessible to researchers via data usage agreements. Every day, more than 500,000 responses are gathered.")
+                        )
+                        ),
+               tabPanel("Data dictionary", icon = icon("book"),
+                        fluidRow(
+                          h1("Data dictionary"),
+                          tags$div(
+                            "This short guide should help users of the application to understand the variables better. A complete data dictionary of the whole survey can be found ",
+                            tags$a(href= "https://gisumd.github.io/COVID-19-API-Documentation/", "here"),
+                            " on the website of the UMD.")
+                          ),
+                        br(),
+                        p(code("anxious_7d"),  br(),"Respondents who reported feeling nervous for most or all of the time over the the past 7 days."),
+                        p(code("depressed_7d"),  br(),"Respondents who reported feeling depressed most or all of the time over the past 7 days."),
+                        p(code("worried_become_ill"),  br(),"Respondents who reported feeling very or somewhat worried that they or someone in their immediate family might become seriously ill from COVID-19."),
+                        p(code("finance"),  br(),"Respondents who are very worried or somewhat worried about themselves and their household’s finances."),
+                        p(code("food_security"),  br(),"Respondents who are very worried or somewhat worried about having enough to eat in the next week.")
+                        ))
     )
     
 )
