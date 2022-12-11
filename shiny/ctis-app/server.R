@@ -18,10 +18,15 @@ variable_choices <- c("anxious_7d", "finance","depressed_7d", "food_security", "
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
-   
-    
-    
-    output$global_map <- renderTmap(tm_shape(mapdata)+
+    create_mapdata <- reactive({
+      mapdata <- data_CTIS_map %>% 
+        select(continent, input$variable, geometry, data.country, data.iso_code, data.survey_date, school_closures, stay_home_requirements) %>% 
+        filter(data.survey_date %in% as.Date(input$survey_date))
+    })
+    fill <- reactive({tm_fill(input$variable)})
+  
+    output$global_map <- renderTmap(tm_shape(create_mapdata())+
+                                        fill()+
                                         tm_borders())
 })
 

@@ -1,7 +1,8 @@
 library(shiny)
 library(shinythemes)
 library(shinycssloaders)
-
+library(tmap)
+library(tmaptools)
 button_color_css <- "
 #DivCompClear, #FinderClear, #EnterTimes{
 /* Change the background color of the update button
@@ -29,8 +30,6 @@ shinyUI(fluidPage(
                                  value = "2021-08-21",
                                  min = min(data_CTIS_map$data.survey_date, na.rm = T),
                                  max = max(data_CTIS_map$data.survey_date, na.rm = T)),
-          
-                       
                    ),
                    mainPanel(
                      tmapOutput("global_map")
