@@ -12,6 +12,7 @@ library(CTIS)
 library(tidyverse)
 install.packages("timetk")
 library(timetk)
+library(lubridate)
 library(reshape2)
 library(corrplot)
 library(ozmaps)
@@ -410,6 +411,15 @@ table_D1_Date <- CTIS_microdata %>%
                     .by = "week",
                     n = n()) %>%
   group_by(RecordedDate) %>%
+  mutate(perc = n/sum(n))
+
+table_D1_Date_weekdates <- CTIS_microdata %>%
+  select(RecordedDate, D1) %>%
+  drop_na() %>%
+  mutate(day_of_week = wday(RecordedDate, label = TRUE)) %>%
+  select(day_of_week, D1) %>%
+  group_by(day_of_week, D1) %>%
+  summarise(n = n()) %>%
   mutate(perc = n/sum(n))
 
 table_D1_E4_Date <- CTIS_microdata %>%
