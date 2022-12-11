@@ -7,9 +7,11 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-devtools::install_github("CaroHaensch/CTIS")
+# devtools::install_github("CaroHaensch/CTIS")
 library(CTIS)
 library(tidyverse)
+install.packages("timetk")
+library(timetk)
 library(reshape2)
 library(corrplot)
 library(ozmaps)
@@ -84,6 +86,10 @@ policy_data$data.date <- as.Date(policy_data$data.date)
 policy_data$stay_home_requirements <- factor(policy_data$stay_home_requirements, ordered = TRUE) 
 policy_data$income_support <- factor(policy_data$income_support, ordered = TRUE)
 policy_data$school_closures<- factor(policy_data$school_closures, ordered = TRUE)
+policy_data$data.country<- factor(policy_data$data.country)
+policy_data$data.iso_code<- factor(policy_data$data.iso_code)
+
+saveRDS(object = policy_data, file = "data/policy_data.RDS")
 ```
 
 # Large Data with policy
@@ -250,14 +256,520 @@ ggsave("graphics/depressed_7d_boxplot.png", width = 12, height = 9)
 
 ```{r Chris: microdata analysis}
 # Loading the microdata
-CTIS_microdata <- readr::read_csv(file = "data/protected_data/CTIS_microdata_clean.csv", col_names = TRUE,
-                                  col_types = c(.default = "f", weight = "d", RecordedDate = "T"))
+CTIS_microdata <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
+
+# Create 2nd dataset without NAs
+CTIS_microdata_WO_NA <- CTIS_microdata[complete.cases(CTIS_microdata[, c("D1", "E4")]), ]
 
 # Number of distinct dates
 length(unique(as.Date(CTIS_microdata$RecordedDate)))
 
-# Get an brief overview over the data
-summary(CTIS_microdata[["E4"]])
+# tables for faster plotting:
+table_D1 <- CTIS_microdata %>%
+  select(D1) %>%
+  group_by(D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+
+table_D1_WO_NA <- CTIS_microdata %>%
+  select(D1) %>%
+  drop_na() %>%
+  group_by(D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+
+table_D1_E4 <- CTIS_microdata %>%
+  select(D1, E4) %>%
+  group_by(E4, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+
+table_D1_E4_WO_NA <- CTIS_microdata %>%
+  select(D1, E4) %>%
+  drop_na() %>%
+  group_by(E4, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+
+table_D1_E8 <- CTIS_microdata %>%
+  select(D1, E8) %>%
+  group_by(E8, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+
+table_D1_E8_WO_NA <- CTIS_microdata %>%
+  select(D1, E8) %>%
+  drop_na() %>%
+  group_by(E8, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+
+table_D1_E3 <- CTIS_microdata %>%
+  select(D1, E3) %>%
+  group_by(E3, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+
+table_D1_E3_WO_NA <- CTIS_microdata %>%
+  select(D1, E3) %>%
+  drop_na() %>%
+  group_by(E3, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+
+table_D1_D7a <- CTIS_microdata %>%
+  select(D1, D7a) %>%
+  group_by(D7a, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+
+table_D1_D7a_WO_NA <- CTIS_microdata %>%
+  select(D1, D7a) %>%
+  drop_na() %>%
+  group_by(D7a, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+
+
+table_NA_D1_Date <- CTIS_microdata %>%
+  select(RecordedDate, D1) %>%
+  filter(is.na(D1)) %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "day",
+                    count_NA = n())
+
+table_NA_E4_Date <- CTIS_microdata %>%
+  select(RecordedDate, E4) %>%
+  filter(is.na(E4)) %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "day",
+                    count_NA = n())
+
+table_NA_E8_Date <- CTIS_microdata %>%
+  select(RecordedDate, E8) %>%
+  filter(is.na(E8)) %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "day",
+                    count_NA = n())
+
+table_NA_E3_Date <- CTIS_microdata %>%
+  select(RecordedDate, E3) %>%
+  filter(is.na(E3)) %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "day",
+                    count_NA = n())
+
+table_NA_D7a_Date <- CTIS_microdata %>%
+  select(RecordedDate, D7a) %>%
+  filter(is.na(D7a)) %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "day",
+                    count_NA = n())
+
+table_Obs_D1_Date <- CTIS_microdata %>%
+  select(RecordedDate, D1) %>%
+  drop_na() %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "day",
+                    count = n())
+
+table_Obs_E4_Date <- CTIS_microdata %>%
+  select(RecordedDate, E4) %>%
+  drop_na() %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "day",
+                    count = n())
+
+table_Obs_E8_Date <- CTIS_microdata %>%
+  select(RecordedDate, E8) %>%
+  drop_na() %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "day",
+                    count = n())
+
+table_Obs_E3_Date <- CTIS_microdata %>%
+  select(RecordedDate, E3) %>%
+  drop_na() %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "day",
+                    count = n())
+
+table_Obs_D7a_Date <- CTIS_microdata %>%
+  select(RecordedDate, D7a) %>%
+  drop_na() %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "day",
+                    count = n())
+
+
+table_D1_Date <- CTIS_microdata %>%
+  select(RecordedDate, D1) %>%
+  drop_na() %>%
+  group_by(D1) %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "week",
+                    n = n()) %>%
+  group_by(RecordedDate) %>%
+  mutate(perc = n/sum(n))
+
+table_D1_E4_Date <- CTIS_microdata %>%
+  select(RecordedDate, D1, E4) %>%
+  drop_na() %>%
+  group_by(E4, D1) %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "week",
+                    n = n()) %>%
+  group_by(E4, RecordedDate) %>%
+  mutate(perc = n/sum(n))
+
+table_D1_E8_Date <- CTIS_microdata %>%
+  select(RecordedDate, D1, E8) %>%
+  drop_na() %>%
+  group_by(E8, D1) %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "week",
+                    n = n()) %>%
+  group_by(E8, RecordedDate) %>%
+  mutate(perc = n/sum(n))
+
+table_D1_E3_Date <- CTIS_microdata %>%
+  select(RecordedDate, D1, E3) %>%
+  drop_na() %>%
+  group_by(E3, D1) %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "week",
+                    n = n()) %>%
+  group_by(E3, RecordedDate) %>%
+  mutate(perc = n/sum(n))
+
+table_D1_D7a_Date <- CTIS_microdata %>%
+  select(RecordedDate, D1, D7a) %>%
+  drop_na() %>%
+  group_by(D7a, D1) %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "week",
+                    n = n()) %>%
+  group_by(D7a, RecordedDate) %>%
+  mutate(perc = n/sum(n))
+
+
+# Plots with tables ----------------------------------------------------------------
+
+# Plot: D1 (nervous)
+ggplot(table_D1, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
+  labs(title = "D1 (nervous)", 
+       y = "relative frequencies")
+ggsave("Plots/Chris/table_data/D1_barplot.png", width = 12, height = 9)
+
+ggplot(table_D1_WO_NA, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
+  labs(title = "D1 (nervous) - no NAs", 
+       y = "relative frequencies")
+ggsave("Plots/Chris/table_data/NO_NA_D1_barplot.png", width = 12, height = 9)
+
+## Plot NAs and Observations _____________________________________________
+
+# Plot: NAs D1 (nervous) vs RecordedDate
+ggplot(data = table_NA_D1_Date, mapping = aes(x = RecordedDate, y = count_NA)) +
+  geom_line() +
+  labs(title = "NAs D1 (nervous) vs RecordedDate",
+       y = "Count of NAs - D1 (per day)")
+ggsave("Plots/Chris/table_data/NAs_RecordedDate_D1_lineplot.png", width = 12, height = 9)
+
+
+# Plot: NAs E4 (age group) vs RecordedDate
+ggplot(data = table_NA_E4_Date, mapping = aes(x = RecordedDate, y = count_NA)) +
+  geom_line() +
+  labs(title = "NAs E4 (nervous) vs RecordedDate",
+       y = "Count of NAs - E4 (per day)")
+ggsave("Plots/Chris/table_data/NAs_RecordedDate_E4_lineplot.png", width = 12, height = 9)
+
+
+# Plot: NAs E8 (highest education-level) vs RecordedDate
+ggplot(data = table_NA_E8_Date, mapping = aes(x = RecordedDate, y = count_NA)) +
+  geom_line() +
+  labs(title = "NAs E8 (highest education-level) vs RecordedDate",
+       y = "Count of NAs - E8 (per day)")
+ggsave("Plots/Chris/table_data/NAs_RecordedDate_E8_lineplot.png", width = 12, height = 9)
+
+
+# Plot: NAs E3 (gender) vs RecordedDate
+ggplot(data = table_NA_E3_Date, mapping = aes(x = RecordedDate, y = count_NA)) +
+  geom_line() +
+  labs(title = "NAs E3 (gender) vs RecordedDate",
+       y = "Count of NAs - E3 (per day)")
+ggsave("Plots/Chris/table_data/NAs_RecordedDate_E3_lineplot.png", width = 12, height = 9)
+
+
+# Plot: NAs D7a (work last 4 weeks) vs RecordedDate
+ggplot(data = table_NA_D7a_Date, mapping = aes(x = RecordedDate, y = count_NA)) +
+  geom_line() +
+  labs(title = "NAs D7a (work last 4 weeks) vs RecordedDate",
+       y = "Count of NAs - D7a (per day)")
+ggsave("Plots/Chris/table_data/NAs_RecordedDate_D7a_lineplot.png", width = 12, height = 9)
+
+
+
+# Plot: Observations D1 (nervous) vs RecordedDate
+ggplot(data = table_Obs_D1_Date, mapping = aes(x = RecordedDate, y = count)) +
+  geom_line() +
+  labs(title = "Observations D1 (nervous) vs RecordedDate",
+       y = "Count of Observations - D1 (per day)")
+ggsave("Plots/Chris/table_data/Obs_RecordedDate_D1_lineplot.png", width = 12, height = 9)
+
+
+# Plot: Observations E4 (age group) vs RecordedDate
+ggplot(data = table_Obs_E4_Date, mapping = aes(x = RecordedDate, y = count)) +
+  geom_line() +
+  labs(title = "Observations E4 (nervous) vs RecordedDate",
+       y = "Count of Observations - E4 (per day)")
+ggsave("Plots/Chris/table_data/Obs_RecordedDate_E4_lineplot.png", width = 12, height = 9)
+
+
+# Plot: Observations E8 (highest education-level) vs RecordedDate
+ggplot(data = table_Obs_E8_Date, mapping = aes(x = RecordedDate, y = count)) +
+  geom_line() +
+  labs(title = "Observations E8 (highest education-level) vs RecordedDate",
+       y = "Count of Observations - E8 (per day)")
+ggsave("Plots/Chris/table_data/Obs_RecordedDate_E8_lineplot.png", width = 12, height = 9)
+
+
+# Plot: Observations E3 (gender) vs RecordedDate
+ggplot(data = table_Obs_E3_Date, mapping = aes(x = RecordedDate, y = count)) +
+  geom_line() +
+  labs(title = "Observations E3 (gender) vs RecordedDate",
+       y = "Count of Observations - E3 (per day)")
+ggsave("Plots/Chris/table_data/Obs_RecordedDate_E3_lineplot.png", width = 12, height = 9)
+
+
+# Plot: Observations D7a (work last 4 weeks) vs RecordedDate
+ggplot(data = table_Obs_D7a_Date, mapping = aes(x = RecordedDate, y = count)) +
+  geom_line() +
+  labs(title = "Observations D7a (work last 4 weeks) vs RecordedDate",
+       y = "Count of Observations - D7a (per day)")
+ggsave("Plots/Chris/table_data/Obs_RecordedDate_D7a_lineplot.png", width = 12, height = 9)
+
+
+# Plot multiple variables _________________________________________
+
+# Plot D1 (nervous) vs E4 (age group)
+ggplot(table_D1_E4, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
+  facet_wrap(~E4) +
+  coord_flip() +
+  labs(title = "D1 (nervous) vs E4 (age group)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)")
+ggsave("Plots/Chris/table_data/D1_vs_E4_barplot.png", width = 12, height = 9)
+
+ggplot(table_D1_E4_WO_NA, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
+  facet_wrap(~E4) +
+  coord_flip() +
+  labs(title = "D1 (nervous) vs E4 (age group)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)")
+ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E4_barplot.png", width = 12, height = 9)
+
+ggplot(table_D1_E4, aes(x = D1, y = perc)) + 
+  geom_bar(mapping = aes(fill = E4), position = "dodge", stat = "identity") +
+  labs(title = "D1 (nervous) vs E4 (age group)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)",) + 
+  scale_fill_brewer(palette = "Blues", name = "E4 (age group)", na.value="black")
+ggsave("Plots/Chris/table_data/D1_vs_E4_dodge_barplot.png", width = 12, height = 9)
+
+ggplot(table_D1_E4_WO_NA, aes(x = D1, y = perc)) + 
+  geom_bar(mapping = aes(fill = E4), position = "dodge", stat = "identity") +
+  labs(title = "D1 (nervous) vs E4 (age group)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)",) + 
+  scale_fill_brewer(palette = "Blues", name = "E4 (age group)")
+ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E4_dodge_barplot.png", width = 12, height = 9)
+
+
+
+# Plot D1 (nervous) vs E8 (highest education-level)
+ggplot(table_D1_E8, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
+  facet_wrap(~E8) +
+  coord_flip() +
+  labs(title = "D1 (nervous) vs E8 (highest education-level)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)")
+ggsave("Plots/Chris/table_data/D1_vs_E8_barplot.png", width = 12, height = 9)
+
+ggplot(table_D1_E8_WO_NA, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
+  facet_wrap(~E8) +
+  coord_flip() +
+  labs(title = "D1 (nervous) vs E8 (highest education-level)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)")
+ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E8_barplot.png", width = 12, height = 9)
+
+ggplot(table_D1_E8, aes(x = D1, y = perc)) + 
+  geom_bar(mapping = aes(fill = E8), position = "dodge", stat = "identity") +
+  labs(title = "D1 (nervous) vs E8 (highest education-level)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)",) + 
+  scale_fill_brewer(palette = "Blues", name = "E8 (highest education-level)", na.value="black")
+ggsave("Plots/Chris/table_data/D1_vs_E8_dodge_barplot.png", width = 12, height = 9)
+
+ggplot(table_D1_E8_WO_NA, aes(x = D1, y = perc)) + 
+  geom_bar(mapping = aes(fill = E8), position = "dodge", stat = "identity") +
+  labs(title = "D1 (nervous) vs E8 (highest education-level)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)",) + 
+  scale_fill_brewer(palette = "Blues", name = "E8 (highest education-level)")
+ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E8_dodge_barplot.png", width = 12, height = 9)
+
+
+
+# Plot D1 (nervous) vs E3 (gender)
+ggplot(table_D1_E3, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
+  facet_wrap(~E3) +
+  coord_flip() +
+  labs(title = "D1 (nervous) vs E3 (gender)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)")
+ggsave("Plots/Chris/table_data/D1_vs_E3_barplot.png", width = 12, height = 9)
+
+ggplot(table_D1_E3_WO_NA, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
+  facet_wrap(~E3) +
+  coord_flip() +
+  labs(title = "D1 (nervous) vs E3 (gender)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)")
+ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E3_barplot.png", width = 12, height = 9)
+
+ggplot(table_D1_E3, aes(x = D1, y = perc)) + 
+  geom_bar(mapping = aes(fill = E3), position = "dodge", stat = "identity") +
+  labs(title = "D1 (nervous) vs E3 (gender)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)",) + 
+  scale_fill_brewer(palette = "Blues", name = "E3 (gender)", na.value="black")
+ggsave("Plots/Chris/table_data/D1_vs_E3_dodge_barplot.png", width = 12, height = 9)
+
+ggplot(table_D1_E3_WO_NA, aes(x = D1, y = perc)) + 
+  geom_bar(mapping = aes(fill = E3), position = "dodge", stat = "identity") +
+  labs(title = "D1 (nervous) vs E3 (gender)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)",) + 
+  scale_fill_brewer(palette = "Blues", name = "E3 (gender)")
+ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E3_dodge_barplot.png", width = 12, height = 9)
+
+
+
+# Plot D1 (nervous) vs D7a (work last 4 weeks)
+ggplot(table_D1_D7a, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
+  facet_wrap(~D7a) +
+  coord_flip() +
+  labs(title = "D1 (nervous) vs D7a (work last 4 weeks)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)")
+ggsave("Plots/Chris/table_data/D1_vs_D7a_barplot.png", width = 12, height = 9)
+
+ggplot(table_D1_D7a_WO_NA, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +s
+  facet_wrap(~D7a) +
+  coord_flip() +
+  labs(title = "D1 (nervous) vs D7a (work last 4 weeks)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)")
+ggsave("Plots/Chris/table_data/NO_NA_D1_vs_D7a_barplot.png", width = 12, height = 9)
+
+ggplot(table_D1_D7a, aes(x = D1, y = perc)) + 
+  geom_bar(mapping = aes(fill = D7a), position = "dodge", stat = "identity") +
+  labs(title = "D1 (nervous) vs D7a (work last 4 weeks)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)",) + 
+  scale_fill_brewer(palette = "Blues", name = "D7a (work last 4 weeks)", na.value="black")
+ggsave("Plots/Chris/table_data/D1_vs_D7a_dodge_barplot.png", width = 12, height = 9)
+
+ggplot(table_D1_D7a_WO_NA, aes(x = D1, y = perc)) + 
+  geom_bar(mapping = aes(fill = D7a), position = "dodge", stat = "identity") +
+  labs(title = "D1 (nervous) vs D7a (work last 4 weeks)", 
+       y = "relative frequencies",
+       x = "D1 (nervous)",) + 
+  scale_fill_brewer(palette = "Blues", name = "D7a (work last 4 weeks)")
+ggsave("Plots/Chris/table_data/NO_NA_D1_vs_D7a_dodge_barplot.png", width = 12, height = 9)
+
+
+
+# Plot D1 (nervous) vs RecordedDate
+ggplot(data = table_D1_Date, mapping = aes(x = RecordedDate, y = perc)) +
+  geom_line(mapping = aes(color = D1)) +
+  labs(title = "D1 (nervous) vs RecordedDate", 
+       y = "relative frequencies",
+       color = "D1 (nervous)")
+ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_lineplot.png", width = 12, height = 9)
+
+
+# Plot D1 (nervous) vs RecordedDate vs E4 (age group)
+ggplot(data = table_D1_E4_Date, mapping = aes(x = RecordedDate, y = perc)) +
+  geom_line(mapping = aes(color = D1)) +
+  facet_wrap(~E4) +
+  labs(title = "D1 (nervous) vs RecordedDate vs E4 (age group)", 
+       y = "relative frequencies",
+       color = "D1 (nervous)")
+ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_vs_E4_lineplot.png", width = 12, height = 9)
+
+
+# Plot D1 (nervous) vs RecordedDate vs E8 (highest education-level)
+ggplot(data = table_D1_E8_Date, mapping = aes(x = RecordedDate, y = perc)) +
+  geom_line(mapping = aes(color = D1)) +
+  facet_wrap(~E8) +
+  labs(title = "D1 (nervous) vs RecordedDate vs E8 (highest education-level)", 
+       y = "relative frequencies",
+       color = "D1 (nervous)")
+ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_vs_E8_lineplot.png", width = 12, height = 9)
+
+
+# Plot D1 (nervous) vs RecordedDate vs E3 (gender)
+ggplot(data = table_D1_E3_Date, mapping = aes(x = RecordedDate, y = perc)) +
+  geom_line(mapping = aes(color = D1)) +
+  facet_wrap(~E3) +
+  labs(title = "D1 (nervous) vs RecordedDate vs E3 (gender)", 
+       y = "relative frequencies",
+       color = "D1 (nervous)")
+ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_vs_E3_lineplot.png", width = 12, height = 9)
+
+
+# Plot D1 (nervous) vs RecordedDate vs D7a (work last 4 weeks)
+ggplot(data = table_D1_D7a_Date, mapping = aes(x = RecordedDate, y = perc)) +
+  geom_line(mapping = aes(color = D1)) +
+  facet_wrap(~D7a) +
+  labs(title = "D1 (nervous) vs RecordedDate vs D7a (work last 4 weeks)", 
+       y = "relative frequencies",
+       color = "D1 (nervous)")
+ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_vs_D7a_lineplot.png", width = 12, height = 9)
+
+
+# Plots with data ------------------------------------------------------------------
+
+# Plot: D1
+ggplot(data = CTIS_microdata, mapping = aes(x = D1)) + 
+  geom_bar() + 
+  scale_y_continuous(labels=scales::percent) +
+  ylab("relative frequencies") +
+  labs(title = "D1 (nervous)")
+
+
+ggplot(data = CTIS_microdata, mapping = aes(y = D1)) + 
+  geom_bar(stat = "identity") +
+  labs(title = "D1 (nervous)")
+ggsave("graphics/depressed_7d_boxplot.png", width = 12, height = 9)
+
+
+# Plot: D1 vs E4
+ggplot(data = CTIS_microdata, mapping = aes(x = D1)) + 
+  geom_bar() +
+  facet_wrap(~E4)
+
+barplot_D1vsE4 <- ggplot(data = CTIS_microdata, aes(x = D1, group = E4)) + 
+  geom_bar(aes(y = ..prop..), stat="count") + 
+  scale_y_continuous(labels=scales::percent) +
+  ylab("relative frequencies") +
+  facet_wrap(~E4) +
+  coord_flip() +
+  labs(title = "D1 (nervous) vs E4 (Age)")
+ggsave(filename = "Plots/Chris/D1vsE4barplot.png", 
+       plot = barplot_D1vsE4, width = 12, height = 12)
 
 ```
 
