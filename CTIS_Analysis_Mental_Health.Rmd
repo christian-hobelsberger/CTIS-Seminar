@@ -430,6 +430,8 @@ table_D1_weekday_rel <- CTIS_microdata %>%
   summarise(n = n()) %>%
   mutate(perc = n/sum(n))
 
+
+
 table_D1_E4_Date <- CTIS_microdata %>%
   select(RecordedDate, D1, E4) %>%
   drop_na() %>%
@@ -556,7 +558,7 @@ ggsave("Plots/Chris/table_data/Obs_RecordedDate_D1_lineplot.png", width = 12, he
 # Plot: Observations E4 (age group) vs RecordedDate
 ggplot(data = table_Obs_E4_Date, mapping = aes(x = RecordedDate, y = count)) +
   geom_line() +
-  labs(title = "Observations E4 (nervous) vs RecordedDate",
+  labs(title = "Observations E4 (age group) vs RecordedDate",
        y = "Count of Observations - E4 (per day)")
 ggsave("Plots/Chris/table_data/Obs_RecordedDate_E4_lineplot.png", width = 12, height = 9)
 
