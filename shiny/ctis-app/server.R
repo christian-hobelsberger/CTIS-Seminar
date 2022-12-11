@@ -18,7 +18,7 @@ variable_choices <- c("anxious_7d", "finance","depressed_7d", "food_security", "
 data("World")
 world <- World[c("iso_a3", "sovereignt", "geometry")]
 colnames(world) <- c("data.iso_code", "data.country", "geometry")
-#data_CTIS_map <- readRDS("shiny/ctis-app/app-data/data_CTIS_map.rds")
+#data_CTIS_map <- readRDS("shiny/ctis-app/app-data/data_CTIS_map.RDS")
 #data_CTIS_policy <- readRDS("shiny/ctis-app/app-data/data_CTIS_policy.rds")
  # Define server logic required to draw a histogram
 shinyServer(function(input, output) {

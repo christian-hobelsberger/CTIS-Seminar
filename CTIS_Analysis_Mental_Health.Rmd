@@ -516,7 +516,13 @@ data_CTIS_policy_large %>%
   ggplot(aes(x = stay_home_requirements, y = finance))+
   facet_wrap(vars(data.country))+
   geom_boxplot()+
-  geom_hline(yintercept = mean(data_CTIS$finance, na.rm = TRUE))
+  geom_hline(yintercept = mean(data_CTIS$finance, na.rm = TRUE), linetype = "dotted")+
+  ggtitle("Influence of different levels of stay home requirements on household’s finances")+
+  labs(x = "Level of stay home requirements",
+       y = "Relative amount of users worried about finance",
+       subtitle = "Dotted line shows mean of 'finance' variable over the complete data set")
+
+ggsave("plots/Max/box_sub_stayhome_finance.png", width = 12, height = 9)
 ```
 
 ```{r}
@@ -555,7 +561,12 @@ data_CTIS_policy %>%
   summarise(continent_mean_anxious7d = mean(anxious_7d, na.rm = TRUE)) %>% 
   ggplot(aes(x = data.survey_date, y = continent_mean_anxious7d))+
   facet_wrap(vars(continent))+
-    geom_line()
+    geom_line()+
+  labs(x = "Survey date",
+       y = "Continent mean rel. anxious users over last 7 days",
+       title = "Anxiety levels by continent over time")
+
+ggsave("plots/Max/anx_cont_level.png", width = 12, height = 9)
 ```
 
 # Just for Europe
@@ -678,7 +689,12 @@ plot_continent_map <- function(data, variable, area, survey_date, mode = "plot",
 ```{r}
 plot_global_map(data_CTIS_map, variable = "anxious_7d",survey_date = "2021-01-28", mode = "view", id = "data.country", popup.vars = c("Anxiety last 7 days:" = "anxious_7d", "Stay home req. level" = "stay_home_requirements", "School closure level" = "school_closures"))
 
-plot_global_map(data_CTIS_map, variable = "anxious_7d",survey_date = "2021-01-28", mode = "plot")
+plot_global_map(data_CTIS_map, variable = "anxious_7d",survey_date = "2021-01-28", mode = "plot",  title='Anxiety last 7 days')+
+   tm_layout(legend.position = c("left", "bottom"), 
+            main.title= 'Global anxiety levels on 2021-01-28',
+            legend.outside = TRUE,
+            main.title.position = c('center', 'top'))
+
 
 plot_continent_map(data_CTIS_map, variable = "anxious_7d", area = "Europe", survey_date = "2021-01-28", mode = "view", id = "data.country", popup.vars = c("Anxiety last 7 days:" = "anxious_7d", "Stay home req. level" = "stay_home_requirements", "School closure level" = "school_closures"))
 ```
