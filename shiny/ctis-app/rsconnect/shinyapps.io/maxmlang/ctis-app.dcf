@@ -1,0 +1,13 @@
+name: ctis-app
+title: ctis-app
+username:
+account: maxmlang
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 7869502
+bundleId: 6624188
+url: https://maxmlang.shinyapps.io/ctis-app/
+when: 1670794181.74905
+lastSyncTime: 1670794181.74908
+asMultiple: FALSE
+asStatic: FALSE

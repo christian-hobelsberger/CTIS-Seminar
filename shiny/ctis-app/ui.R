@@ -15,9 +15,8 @@ font-size: 15px;
 }"
 
 shinyUI(fluidPage(
-    navbarPage(title = div(img(src='icon.png', style="background-color: transparent; margin-top: -10px;", height = 35), "CTIS Mental Health"),
+    navbarPage(id = "navbar", title = div(img(src='icon.png', style="background-color: transparent; margin-top: -10px;", height = 35), tags$a(href= "https://github.com/christian-hobelsberger/CTIS-Seminar", "CTIS Mental Health")),
                theme = shinytheme("lumen"),
-      
              navbarMenu("Maps", icon = icon("map"),
                tabPanel("World maps", fluid = TRUE, icon = icon("globe"),
                tags$style(button_color_css),
@@ -111,7 +110,7 @@ shinyUI(fluidPage(
                           )
             ),
             mainPanel(
-              plotOutput("country_ana_line")
+              plotlyOutput("country_ana_line")
             )
           )
     ),
