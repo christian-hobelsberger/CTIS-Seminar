@@ -49,7 +49,7 @@ shinyUI(fluidPage(
                      titlePanel("Map characteristics"),
                      selectInput(inputId = "continent",
                                  label = "Select continent",
-                                 choices = unique(data_CTIS_map$continent),
+                                 choices = na.omit(unique(data_CTIS_map$continent)),
                                  selected = "Europe",
                                  width = "220px"),
                      selectInput(inputId = "cont_variable",
