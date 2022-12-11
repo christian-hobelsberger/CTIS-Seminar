@@ -413,7 +413,15 @@ table_D1_Date <- CTIS_microdata %>%
   group_by(RecordedDate) %>%
   mutate(perc = n/sum(n))
 
-table_D1_Date_weekdates <- CTIS_microdata %>%
+table_D1_weekday_abs <- CTIS_microdata %>%
+  select(RecordedDate, D1) %>%
+  drop_na() %>%
+  mutate(day_of_week = wday(RecordedDate, label = TRUE)) %>%
+  select(day_of_week, D1) %>%
+  group_by(day_of_week) %>%
+  summarise(n = n())
+
+table_D1_weekday_rel <- CTIS_microdata %>%
   select(RecordedDate, D1) %>%
   drop_na() %>%
   mutate(day_of_week = wday(RecordedDate, label = TRUE)) %>%
@@ -475,6 +483,24 @@ ggplot(table_D1_WO_NA, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
   labs(title = "D1 (nervous) - no NAs", 
        y = "relative frequencies")
 ggsave("Plots/Chris/table_data/NO_NA_D1_barplot.png", width = 12, height = 9)
+
+# Plot: D1 (nervous) vs. weekdays - abs
+ggplot(data = table_D1_weekday_abs, mapping = aes(x = day_of_week, y = n)) +
+  geom_bar(stat = "identity") +
+  labs(title = "D1 (nervous) vs. weekdays - abs", 
+       x = "Day of the week",
+       y = "Count of D1 (nervous)")
+ggsave("Plots/Chris/table_data/D1_vs_weekday_abs.png", width = 12, height = 9)
+
+# Plot: D1 (nervous) vs. weekdays - rel
+ggplot(data = table_D1_weekday_rel, mapping = aes(x = day_of_week, y = n)) +
+  geom_bar(mapping = aes(fill = D1), position = "dodge", stat = "identity") +
+  labs(title = "D1 (nervous) vs E4 (age group)", 
+       x = "Day of the week",
+       y = "Count",) + 
+  scale_fill_brewer(palette = "Blues", name = "D1 (nervous)")
+ggsave("Plots/Chris/table_data/D1_vs_weekday_rel.png", width = 12, height = 9)
+  
 
 ## Plot NAs and Observations _____________________________________________
 
