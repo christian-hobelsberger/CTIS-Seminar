@@ -4,6 +4,10 @@
 .Ruserdata
 .DS_Store
 data/microdata
+<<<<<<< HEAD
+map.html
+=======
 data/protected_data
 CTIS_microdata.csv
 .RDataTmp
+>>>>>>> e93a847fcbf69ca68ffaca84832a1d08511f244b
