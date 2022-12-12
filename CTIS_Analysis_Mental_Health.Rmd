@@ -23,6 +23,12 @@ library(maps)
 library(sf)
 library(tigris)
 library(rworldmap)
+library(xts)
+library(lubridate)
+library(lares)
+library(highcharter)
+library(dygraphs)
+
 ```
 
 
@@ -113,6 +119,7 @@ filter( is.na(st_dimension(.)) == FALSE )
 
 # Match Countrycode again because now new countries that were not in the survey but now joined
 data_CTIS_map$continent <- countrycode(data_CTIS_map$data.country, origin = "country.name", destination = "continent")
+
 ```
 
 ## Chris
@@ -301,6 +308,9 @@ data_CTIS_policy_large %>%
   geom_hline(yintercept = mean(data_CTIS_policy_large$anxious_7d), color = "blue")+
   scale_color_viridis_d(option = "A")
 ```
+
+
+
 
 ```{r school closure in 3}
 hard_countries <- unique(data_CTIS_policy_large %>% 
@@ -636,7 +646,8 @@ summary(data_CTIS)
 ```
 
 
-```{r}
+```{r Only analysis for countries with more than 600 obs.}
+
 ############## Countries with > 600 obs. #####################################
 
 
@@ -723,10 +734,43 @@ ggplot(data = mean_food_finance_ill_top10,
 
 ```
 
+```{r}
+# Create a new data.frame with the newly formatted date field
+data_CTIS_new <- data_CTIS %>%
+  mutate(DATE = as.Date(data.survey_date, format = "%m/%d/%y"))
+
+
+data_CTIS_new %>% drop_na() %>% mutate(month_new = as.Date(data.survey_date, 
+                          format = "%m/%y")) %>% group_by(month_new)
+
+```
 
 ## Correlations
 ```{r}
-library(xts)
+## daily correlation
+data_CTIS %>%  drop_na() %>% group_by(data.survey_date) %>%
+  summarize(COR=cor(depressed_7d,anxious_7d)) %>% ggplot(aes(x = data.survey_date, y = COR)) + geom_line() + 
+  xlab("Date")
+
+cor_daily <- data_CTIS %>%  drop_na() %>% group_by(data.survey_date) %>%
+  summarize(COR=cor(depressed_7d,anxious_7d))
+
+highchart() %>% 
+  hc_add_series(cor_daily$COR, type = "line")
+######################################## CORRECT
+# month
+data_CTIS_policy_large$month <- floor_date(data_CTIS_policy_large$data.survey_date, "1 month")
+month_cor <- data_CTIS_policy_large %>% group_by(month) %>% summarise(correlation = cor(anxious_7d, depressed_7d))
+# week
+data_CTIS_policy_large$week <- floor_date(data_CTIS_policy_large$data.survey_date, "1 week")
+week_cor <- data_CTIS_policy_large %>% group_by(week) %>% summarise(correlation = cor(anxious_7d, depressed_7d))
+######################################### END
+highchart() %>% 
+  hc_add_series(month_cor$correlation, type = "line")
+```
+
+
+```{r}
 # correlation table 
 res <- data_CTIS %>% select(anxious_7d, depressed_7d, worried_become_ill, 
                             finance, food_security) %>% drop_na()
@@ -734,7 +778,11 @@ correlation <- cor(res)
 correlation
 
 ## add week numbers to the dataset
+data_CTIS$week_num <- floor_date(data_CTIS$data.survey_date, "1 week")
+
 data_CTIS$week_num <- strftime(data_CTIS$data.survey_date, format = "%V")
+## add month to the dataset
+data_CTIS$month <- floor_date(data_CTIS$data.survey_date, "1 month")
 
 # Ukraine has the highest correlation between depressed and anxious
 data_CTIS %>%
@@ -744,16 +792,18 @@ Ukraine_data <- data_CTIS %>%  filter(data.country == "Ukraine")
 
 ## correlations
 # remove not needed variables
-ukraine <- Ukraine_data %>% select(-c(1:4), -10)
+ukraine <- Ukraine_data %>% select(-c(1:4), -10, -11, -12)
 summary(ukraine)
 
-library(lares)
-corr_cross(ukraine, rm.na = T, max_pvalue = 0.05, top = 15, grid = T)
 
+corr_cross(ukraine, rm.na = T, max_pvalue = 0.05, top = 15, grid = T)
+```
+
+
+```{r REMOVE}
 # group data by week
 data_CTIS$week_num <- strftime(data_CTIS$data.survey_date, format = "%V")
 
-library(highcharter)
 
 # weekly correlation in Ukraine between depressed_7d and anxious_7d
 cor_by_week_Ukraine <- data_CTIS %>%  filter(data.country == "Ukraine") %>% group_by(week_num) %>%
@@ -762,23 +812,20 @@ cor_by_week_Ukraine <- data_CTIS %>%  filter(data.country == "Ukraine") %>% grou
 ## highchart
 highchart() %>% 
   hc_add_series(cor_by_week_Ukraine$COR, type = "line")
+
+## correlation week for all countries
+highchart() %>% 
+  hc_add_series(corr_by_month$COR, type = "line")
+
+corr_by_month <- data_CTIS %>% drop_na() %>% group_by(month_new) %>%
+  summarize(COR = cor(depressed_7d,anxious_7d)) 
+
+  highchart() %>% 
+  hc_add_series(corr_by_month$COR, type = "line")
 ```
 
 
-```{r}
-## Connected scatterplot to show an evolution
-library(hrbrthemes)
-
-cor_by_week_Ukraine %>%
-                      ggplot(aes(x = week_num, y = COR)) + 
-    geom_line(color="grey") +
-    geom_point(shape= 21, color="black", fill="#69b3a2", size=2) + theme_ipsum() 
-
-```
-
-
-```{r}
-
+```{r Turkey Correlation anxious and depressed}
 ## with dygraphs
 # Turkey has highest anxious_7d
 data_CTIS_Turkey <- data_CTIS %>% filter(data.country == "Turkey")
@@ -793,12 +840,86 @@ p <- dygraph(don) %>%
 p
 ```
 
+
+```{r Daily correlation anxious and depressed}
+## corr daily
+daily <- xts(x = cor_daily$COR, order.by = cor_daily$data.survey_date)
+d <- dygraph(daily) %>%
+  dyOptions(labelsUTC = TRUE, fillGraph=TRUE, fillAlpha=0.1, drawGrid = FALSE, colors="#D8AE5A") %>%
+  dyRangeSelector() %>%
+  dyCrosshair(direction = "vertical") %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2, hideOnMouseOut = FALSE)  %>%
+  dyRoller(rollPeriod = 1)
+d
+```
+
+
+```{r}
+## monthly correlation
+monthly_correlation <- xts(x = month_cor$correlation, order.by = month_cor$month)
+m <- dygraph(monthly_correlation) %>%
+  dyOptions(labelsUTC = TRUE, fillGraph=TRUE, fillAlpha=0.1, drawGrid = FALSE, colors="#D8AE5A") %>%
+  dyRangeSelector() %>%
+  dyCrosshair(direction = "vertical") %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2, hideOnMouseOut = FALSE)  %>%
+  dyRoller(rollPeriod = 1)
+m
+```
+
+
+```{r}
+## weekly correlation, continent level
+data_CTIS_policy$week <- floor_date(data_CTIS_policy$data.survey_date, "1 week")
+week_cor <- data_CTIS_policy %>% group_by(week, continent) %>% summarise(correlation = cor(anxious_7d, depressed_7d))
+# plot
+ggplot(week_cor, aes(x = week, y = correlation))+ facet_wrap(~ continent, ncol = 2) + geom_line() +
+  theme(axis.text = element_text(size = 8))
+ggsave("weekly_correlation_anxious_dep_continent.png", width = 12, height = 9)
+```
+
+
+```{r}
+## weekly
+week_correlation <- xts(x = week_cor$correlation, order.by = week_cor$week)
+w <- dygraph(week_correlation) %>%
+  dyOptions(labelsUTC = TRUE, fillGraph=TRUE, fillAlpha=0.1, drawGrid = FALSE, colors="#D8AE5A") %>%
+  dyRangeSelector() %>%
+  dyCrosshair(direction = "vertical") %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2, hideOnMouseOut = FALSE)  %>%
+  dyRoller(rollPeriod = 1)
+w
+```
+
+
+```{r}
+## weekly in Ukraine
+week_cor_Ukraine <- data_CTIS_policy %>% filter(data.country == "Ukraine") %>% 
+  group_by(week) %>% summarise(correlation = cor(anxious_7d, depressed_7d))
+
+
+data_CTIS_policy$week <- floor_date(data_CTIS_policy$data.survey_date, "1 week")
+
+week_cor <- data_CTIS_policy %>% filter(data.country == "Ukraine") %>%
+  group_by(week) %>% summarise(correlation = cor(anxious_7d, depressed_7d))
+# plot ukraine
+week_cor_ukraine <- xts(x = week_cor$correlation, order.by = week_cor$week)
+w_ukraine <- dygraph(week_cor_ukraine) %>%
+  dyOptions(labelsUTC = TRUE, fillGraph=TRUE, fillAlpha=0.1, drawGrid = FALSE, colors="#D8AE5A") %>%
+  dyRangeSelector() %>%
+  dyCrosshair(direction = "vertical") %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2, hideOnMouseOut = FALSE)  %>%
+  dyRoller(rollPeriod = 1)
+w_ukraine
+
+```
+
 ```{r Correlation}
 ## correlation with more plot types
 library(GGally)
 res <- data_CTIS %>% select(anxious_7d, depressed_7d, worried_become_ill, 
                             finance, food_security) %>% drop_na()
 ggpairs(res) 
+ggsave("correlation_policy_data.png", width = 12, height = 9)
 
 ## correlation of each variable as a square
 data_CTIS_map_ohnegeom <- st_set_geometry(data_CTIS_map, NULL)
@@ -832,7 +953,7 @@ ggcorr(cor_map2, method = c("everything", "pearson"))
 
 cor_food_finance <- data_CTIS_map_ohnegeom %>%
   group_by(data.country) %>% drop_na() %>%
-  summarize(COR = cor(food_security,finance))  %>% arrange(desc(COR)) %>% top_n(15)
+  summarize(COR = cor(food_security,finance)) %>% arrange(desc(COR)) %>% top_n(15)
 
 top10 <- cor_food_finance $data.country
 top10
@@ -841,25 +962,52 @@ data <- head(cor_food_finance, 15)
 data_CTIS_map_ohnegeom %>% filter(data.country %in% top10) %>% ggplot(aes(x=finance, y=food_security)) +
   geom_point()
 
-## add week numbers to the dataset
-data_CTIS_map_ohnegeom$week_num <- strftime(data_CTIS_map_ohnegeom$data.survey_date, format = "%V")
 
-
-# weekly correlation in "Brazil"  "Mexico" "Taiwan""Indonesia", "Thailand", "Colombia", "Argentina", "Portugal"   
+# "Brazil"  "Mexico" "Taiwan""Indonesia", "Thailand", "Colombia", "Argentina", 
+# "Portugal"   
 # "Philippines", "Chile", "India", "Peru", "France", "Spain", "Italy" between finance and food security
 
-cor_by_week <- data_CTIS_map_ohnegeom %>%  filter(data.country %in% top10) %>% group_by(week_num, data.country) %>%
-  summarize(COR=cor(finance, food_security))
-
-## highchart
-highchart() %>% 
-  hc_add_series(cor_by_week$COR, type = "line")
+```
 
 
-ggplot(data = cor_by_week, aes(x = week_num, y = COR)) +
-    geom_line( color="grey") +
-    geom_point(shape=21, color="black", fill="#69b3a2", size=1) +
-    theme_ipsum()
+```{r}
+## monthly correlation
+# month
+data_CTIS_policy_large_wo_na <- data_CTIS_policy_large %>% drop_na()
+data_CTIS_policy_large_wo_na$month <- floor_date(data_CTIS_policy_large_wo_na$data.survey_date, "1 month") 
+month_cor_food_finance <- data_CTIS_policy_large_wo_na %>% group_by(month) %>% summarise(correlation = cor(finance, food_security))
+
+## plot
+monthly_cor_food_finance <- xts(x = month_cor_food_finance$correlation, order.by = month_cor_food_finance$month)
+m_food_finance <- dygraph(monthly_cor_food_finance) %>%
+  dyOptions(labelsUTC = TRUE, fillGraph=TRUE, fillAlpha=0.1, drawGrid = FALSE, colors="#D8AE5A") %>%
+  dyRangeSelector() %>%
+  dyCrosshair(direction = "vertical") %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2, hideOnMouseOut = FALSE)  %>%
+  dyRoller(rollPeriod = 1)
+m_food_finance
+
+```
+
+
+
+```{r}
+## work with this dataset: data_CTIS_map_ohnegeom
+head(data_CTIS_map_ohnegeom)
+
+# table
+data_CTIS_map_ohnegeom %>% group_by(data.country) %>% drop_na() %>% summarise(cor = cor(finance, 
+                          food_security)) %>% arrange(desc(cor))
+
+# bar plot for first 10 countries with high correlation between finance and food security
+cor_data <- data_CTIS_map_ohnegeom %>% group_by(data.country) %>% drop_na() %>% summarise(cor = cor(finance, 
+                          food_security)) %>% arrange(desc(cor)) %>% top_n(10)
+
+ggplot(cor_data) + geom_col(aes(x = data.country, y = cor))
+
+
+
+
 
 ```
 
