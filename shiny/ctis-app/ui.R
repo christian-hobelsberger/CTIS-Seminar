@@ -7,7 +7,11 @@ library(plotly)
 
 data_CTIS_map <- readRDS("app-data/data_CTIS_map.RDS")
 data_CTIS_policy <- readRDS("app-data/data_CTIS_policy.RDS")
-
+named_variable_vec <- c("Anxious last 7 days (anxious_7d)" = "anxious_7d",
+                        "Depressed last 7 days (depressed_7d)" = "depressed_7d",
+                        "Worried about finance (finance)" = "finance",
+                        "Worried about food security (food_security)" = "food_security",
+                        "Worried to become ill (worried_become_ill)" = "worried_become_ill")
 button_color_css <- "
 #DivCompClear, #FinderClear, #EnterTimes{
 /* Change the background color of the update button
@@ -29,9 +33,8 @@ shinyUI(fluidPage(
                        titlePanel("Map characteristics"),
                        selectInput(inputId = "variable",
                                     label = "Select variable",
-                                    choices = colnames(data_CTIS_map)[5:9],
-                                    selected = "anxious_7d",
-                                    width = "220px"
+                                    choices = named_variable_vec,
+                                    selected = "anxious_7d"
                        ),
                        dateInput(inputId = "date",
                                  label = "Select date",
@@ -53,13 +56,11 @@ shinyUI(fluidPage(
                      selectInput(inputId = "continent",
                                  label = "Select continent",
                                  choices = na.omit(unique(data_CTIS_map$continent)),
-                                 selected = "Europe",
-                                 width = "220px"),
+                                 selected = "Europe"),
                      selectInput(inputId = "cont_variable",
                                  label = "Select variable",
-                                 choices = colnames(data_CTIS_map)[5:9],
-                                 selected = "anxious_7d",
-                                 width = "220px"
+                                 choices = named_variable_vec,
+                                 selected = "anxious_7d"
                      ),
                      dateInput(inputId = "cont_date",
                                label = "Select date",
@@ -79,9 +80,12 @@ shinyUI(fluidPage(
                      sidebarPanel(
                          titlePanel("Plot characteristics"),
                          selectInput("global_ana_variable",
-                                     label = "Select variable",
-                                     choices = colnames(data_CTIS_map)[5:9],
-                                     selected = "anxious_7d",
+                                     label = "Select co-variable",
+                                     choices = c("Age group (E4)"= "E4", 
+                                                 "Education level (E8)" = "E8", 
+                                                 "Gender (E3)"= "E3", 
+                                                 "Worked last 4 weeks (D7a)"= "D7a"),
+                                     selected = "E4",
                                      width = "220px")
                      ),
                      mainPanel(
@@ -95,14 +99,12 @@ shinyUI(fluidPage(
                      titlePanel("Plot characteristics"),
                      selectInput("cont_ana_variable",
                                  label = "Select variable",
-                                 choices = colnames(data_CTIS_map)[5:9],
-                                 selected = "anxious_7d",
-                                 width = "220px"),
+                                 choices = named_variable_vec,
+                                 selected = "anxious_7d"),
                      selectInput("cont_ana_continent",
                                  label = "Select continent",
                                  choices = unique(data_CTIS_policy$continent),
                                  selected = "Europe",
-                                 width = "220px",
                                  multiple = TRUE)
                    ),
                    mainPanel(
@@ -116,14 +118,12 @@ shinyUI(fluidPage(
               titlePanel("Plot characteristics"),
               selectInput("country_ana_variable",
                           label = "Select variable",
-                          choices = colnames(data_CTIS_map)[5:9],
-                          selected = "anxious_7d",
-                          width = "220px"),
+                          choices = named_variable_vec,
+                          selected = "anxious_7d"),
               selectizeInput("country_ana_country",
                           label = "Select country",
                           choices = unique(data_CTIS_policy$data.country),
                           selected = "Germany",
-                          width = "220px",
                           multiple = FALSE,
                           )
             ),
