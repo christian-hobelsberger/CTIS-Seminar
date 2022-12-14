@@ -71,6 +71,21 @@ shinyUI(fluidPage(
                  )
         )
              ),
+        tabPanel("Global Analysis", icon = icon("globes"),
+                 sidebarLayout(
+                     sidebarPanel(
+                         titlePanel("Plot characteristics"),
+                         selectInput("global_ana_variable",
+                                     label = "Select variable",
+                                     choices = colnames(data_CTIS_map)[5:9],
+                                     selected = "anxious_7d",
+                                     width = "220px")
+                     ),
+                     mainPanel(
+                         h1("plot here")
+                     )
+                     )
+                 ),
         tabPanel("Continent Analysis", icon = icon("earth-europe"),
                  sidebarLayout(
                    sidebarPanel(
