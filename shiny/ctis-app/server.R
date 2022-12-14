@@ -64,7 +64,7 @@ shinyServer(function(input, output) {
                                     fill_cont()+
                                     tm_borders())
     
-    # Global Analysis tab ----
+    # Global Analysis tab ---- 
     # create_D1_E4_WO_NA <- reactive({
     #   readRDS("app-data/protected_data/table_D1_E4_WO_NA.RDS")
     # })
