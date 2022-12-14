@@ -80,8 +80,8 @@ shinyUI(fluidPage(
                          titlePanel("Plot characteristics"),
                          selectInput("global_ana_variable",
                                      label = "Select variable",
-                                     choices = colnames(data_CTIS_map)[5:9],
-                                     selected = "anxious_7d",
+                                     choices = c("E4", "E8", "E3", "D7a"),
+                                     selected = "E4",
                                      width = "220px")
                      ),
                      mainPanel(
