@@ -1,0 +1,34 @@
+# Loading the microdata
+CTIS_microdata <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
+
+table_D1_E4_WO_NA <- CTIS_microdata %>%
+  select(D1, E4) %>%
+  drop_na() %>%
+  group_by(E4, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+saveRDS(object = table_D1_E4_WO_NA, "shiny/ctis-app/app-data/protected_data/table_D1_E4_WO_NA.RDS")
+  
+table_D1_E8_WO_NA <- CTIS_microdata %>%
+  select(D1, E8) %>%
+  drop_na() %>%
+  group_by(E8, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+saveRDS(object = table_D1_E8_WO_NA, "shiny/ctis-app/app-data/protected_data/table_D1_E8_WO_NA.RDS")
+
+table_D1_E3_WO_NA <- CTIS_microdata %>%
+  select(D1, E3) %>%
+  drop_na() %>%
+  group_by(E3, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+saveRDS(object = table_D1_E3_WO_NA, "shiny/ctis-app/app-data/protected_data/table_D1_E3_WO_NA.RDS")
+  
+table_D1_D7a_WO_NA <- CTIS_microdata %>%
+  select(D1, D7a) %>%
+  drop_na() %>%
+  group_by(D7a, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+saveRDS(object = table_D1_D7a_WO_NA, "shiny/ctis-app/app-data/protected_data/table_D1_D7a_WO_NA.RDS")
