@@ -80,7 +80,10 @@ shinyUI(fluidPage(
                          titlePanel("Plot characteristics"),
                          selectInput("global_ana_variable",
                                      label = "Select variable",
-                                     choices = c("E4", "E8", "E3", "D7a"),
+                                     choices = c("Age group (E4)"= "E4", 
+                                                 "Education level (E8)" = "E8", 
+                                                 "Gender (E3)"= "E3", 
+                                                 "Worked last 4 weeks (D7a)"= "D7a"),
                                      selected = "E4",
                                      width = "220px")
                      ),
