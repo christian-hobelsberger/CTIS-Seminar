@@ -471,6 +471,9 @@ plot_survey_world(data_CTIS_policy, "2020-04-28", "anxious_7d")
 plot_survey_world(data_CTIS_policy, "2021-01-28", "anxious_7d")
 plot_survey_world(data_CTIS_policy, "2021-04-28", "anxious_7d")
 
+
+
+
 ```
 
 # Creating map for shiny app
@@ -740,7 +743,7 @@ data_CTIS_new <- data_CTIS %>%
   mutate(DATE = as.Date(data.survey_date, format = "%m/%d/%y"))
 
 
-data_CTIS_new %>% drop_na() %>% mutate(month_new = as.Date(data.survey_date, 
+data_CTIS_new <- data_CTIS_new %>% drop_na() %>% mutate(month_new = as.Date(data.survey_date, 
                           format = "%m/%y")) %>% group_by(month_new)
 
 ```
@@ -792,38 +795,12 @@ Ukraine_data <- data_CTIS %>%  filter(data.country == "Ukraine")
 
 ## correlations
 # remove not needed variables
-ukraine <- Ukraine_data %>% select(-c(1:4), -10, -11, -12)
+ukraine <- Ukraine_data %>% select(-c(1:4), -10, -11)
 summary(ukraine)
 
 
 corr_cross(ukraine, rm.na = T, max_pvalue = 0.05, top = 15, grid = T)
 ```
-
-
-```{r REMOVE}
-# group data by week
-data_CTIS$week_num <- strftime(data_CTIS$data.survey_date, format = "%V")
-
-
-# weekly correlation in Ukraine between depressed_7d and anxious_7d
-cor_by_week_Ukraine <- data_CTIS %>%  filter(data.country == "Ukraine") %>% group_by(week_num) %>%
-  summarize(COR=cor(depressed_7d,anxious_7d))
-
-## highchart
-highchart() %>% 
-  hc_add_series(cor_by_week_Ukraine$COR, type = "line")
-
-## correlation week for all countries
-highchart() %>% 
-  hc_add_series(corr_by_month$COR, type = "line")
-
-corr_by_month <- data_CTIS %>% drop_na() %>% group_by(month_new) %>%
-  summarize(COR = cor(depressed_7d,anxious_7d)) 
-
-  highchart() %>% 
-  hc_add_series(corr_by_month$COR, type = "line")
-```
-
 
 ```{r Turkey Correlation anxious and depressed}
 ## with dygraphs
@@ -1006,8 +983,34 @@ cor_data <- data_CTIS_map_ohnegeom %>% group_by(data.country) %>% drop_na() %>% 
 ggplot(cor_data) + geom_col(aes(x = data.country, y = cor))
 
 
-
-
-
 ```
+
+```{r Correlation Plots with global map}
+## Correlation Plot
+
+# new dataset with correlation between anxious and depressed
+data_cor_plot <- data_CTIS_map %>% drop_na() %>% group_by(data.country, data.iso_code) %>% summarise(cor_anx_dep = cor(anxious_7d, depressed_7d))
+data_cor_plot <- data_cor_plot %>% drop_na()
+# join data
+joinData <- joinCountryData2Map(data_cor_plot,
+            nameJoinColumn = "data.iso_code")
+# map plot
+mapCountryData(joinData, nameColumnToPlot = "cor_anx_dep", catMethod = "FixedWidth", colourPalette = brewer.pal(7,"OrRd"))
+```
+
+```{r Correlation Plots with global map}
+## Correlation Plot
+
+# new dataset with correlation between finance and food security
+data_cor_fin_food <- data_CTIS_map %>% drop_na() %>% group_by(data.country, data.iso_code) %>% summarise(cor_fin_food = cor(finance, food_security))
+data_cor_fin_food <- data_cor_fin_food %>% drop_na()
+# join data
+joinData2 <- joinCountryData2Map(data_cor_fin_food,
+            nameJoinColumn = "data.iso_code")
+# map plot
+mapCountryData(joinData2, nameColumnToPlot = "cor_fin_food", catMethod = "FixedWidth", colourPalette = brewer.pal(7,"OrRd"))
+```
+
+
+
 
