@@ -5,6 +5,9 @@ library(tmap)
 library(tmaptools)
 library(plotly)
 
+data_CTIS_map <- readRDS("app-data/data_CTIS_map.RDS")
+data_CTIS_policy <- readRDS("app-data/data_CTIS_policy.RDS")
+
 button_color_css <- "
 #DivCompClear, #FinderClear, #EnterTimes{
 /* Change the background color of the update button
@@ -71,6 +74,21 @@ shinyUI(fluidPage(
                  )
         )
              ),
+        tabPanel("Global Analysis", icon = icon("globe"),
+                 sidebarLayout(
+                     sidebarPanel(
+                         titlePanel("Plot characteristics"),
+                         selectInput("global_ana_variable",
+                                     label = "Select variable",
+                                     choices = colnames(data_CTIS_map)[5:9],
+                                     selected = "anxious_7d",
+                                     width = "220px")
+                     ),
+                     mainPanel(
+                         plotlyOutput("global_micro_ana_bar")
+                     )
+                     )
+                 ),
         tabPanel("Continent Analysis", icon = icon("earth-europe"),
                  sidebarLayout(
                    sidebarPanel(

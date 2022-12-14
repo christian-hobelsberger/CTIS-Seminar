@@ -192,7 +192,7 @@ ggplot(data = data_CTIS_country_subset1,
        mapping = aes(x = data.survey_date, y = anxious_7d, color = data.country)) +
   geom_line() +
   labs(title = "anxious_7d vs. date (1)")
-ggsave("graphics/anxious_7d_set1.png", width = 12, height = 9)
+ggsave("graphics/anxious_7d_set1.png", width = 12, height = 9) 
 
 ggplot(data = data_CTIS_country_subset1, 
        mapping = aes(x = data.survey_date, y = depressed_7d, color = data.country)) +

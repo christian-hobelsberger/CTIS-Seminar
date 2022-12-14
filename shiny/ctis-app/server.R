@@ -7,6 +7,7 @@
 #    http://shiny.rstudio.com/
 #
 
+# install.packages(c("timetk", "shinythemes", "plotly", "shinycssloaders"))
 library(shiny)
 library(tmap)
 library(dplyr)
@@ -18,8 +19,12 @@ variable_choices <- c("anxious_7d", "finance","depressed_7d", "food_security", "
 data("World")
 world <- World[c("iso_a3", "sovereignt", "geometry")]
 colnames(world) <- c("data.iso_code", "data.country", "geometry")
-#data_CTIS_map <- readRDS("shiny/ctis-app/app-data/data_CTIS_map.RDS")
-#data_CTIS_policy <- readRDS("shiny/ctis-app/app-data/data_CTIS_policy.rds")
+data_CTIS_map <- readRDS("app-data/data_CTIS_map.RDS")
+data_CTIS_policy <- readRDS("app-data/data_CTIS_policy.RDS")
+table_D1_E4_WO_NA <- readRDS("app-data/protected_data/table_D1_E4_WO_NA.RDS")
+table_D1_E8_WO_NA <- readRDS("app-data/protected_data/table_D1_E8_WO_NA.RDS")
+table_D1_E3_WO_NA <- readRDS("app-data/protected_data/table_D1_E3_WO_NA.RDS")
+table_D1_D7a_WO_NA <- readRDS("app-data/protected_data/table_D1_D7a_WO_NA.RDS")
  # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
   
@@ -59,7 +64,20 @@ shinyServer(function(input, output) {
                                     fill_cont()+
                                     tm_borders())
     
-    # Continent Analysis tab----
+    # Global Analysis tab ---- 
+    # create_D1_E4_WO_NA <- reactive({
+    #   readRDS("app-data/protected_data/table_D1_E4_WO_NA.RDS")
+    # })
+    output$global_micro_ana_bar <- renderPlotly({
+      ggplotly(ggplot(table_D1_E4_WO_NA, aes(x = D1, y = perc)) + 
+                 geom_bar(mapping = aes(fill = E4), position = "dodge", stat = "identity") +
+                 labs(title = "D1 (nervous) vs E4 (age group)", 
+                      y = "relative frequencies",
+                      x = "D1 (nervous)",) + 
+                 scale_fill_brewer(palette = "Blues", name = "E4 (age group)"))})
+    
+    
+    # Continent Analysis tab---- 
     create_continent_policy <- reactive({
       data_CTIS_policy %>% 
         filter(continent %in% input$cont_ana_continent) %>% 
