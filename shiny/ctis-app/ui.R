@@ -5,6 +5,9 @@ library(tmap)
 library(tmaptools)
 library(plotly)
 
+data_CTIS_map <- readRDS("app-data/data_CTIS_map.RDS")
+data_CTIS_policy <- readRDS("app-data/data_CTIS_policy.RDS")
+
 button_color_css <- "
 #DivCompClear, #FinderClear, #EnterTimes{
 /* Change the background color of the update button
@@ -71,7 +74,7 @@ shinyUI(fluidPage(
                  )
         )
              ),
-        tabPanel("Global Analysis", icon = icon("globes"),
+        tabPanel("Global Analysis", icon = icon("globe"),
                  sidebarLayout(
                      sidebarPanel(
                          titlePanel("Plot characteristics"),
@@ -82,7 +85,7 @@ shinyUI(fluidPage(
                                      width = "220px")
                      ),
                      mainPanel(
-                         h1("plot here")
+                         plotlyOutput("global_micro_ana_bar")
                      )
                      )
                  ),
