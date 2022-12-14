@@ -25,7 +25,7 @@ table_D1_E4_WO_NA <- readRDS("app-data/protected_data/table_D1_E4_WO_NA.RDS")
 table_D1_E8_WO_NA <- readRDS("app-data/protected_data/table_D1_E8_WO_NA.RDS")
 table_D1_E3_WO_NA <- readRDS("app-data/protected_data/table_D1_E3_WO_NA.RDS")
 table_D1_D7a_WO_NA <- readRDS("app-data/protected_data/table_D1_D7a_WO_NA.RDS")
- # Define server logic required to draw a histogram
+# Define server logic required to draw a histogram
 shinyServer(function(input, output) {
   
   # Maps tab -----
@@ -65,16 +65,37 @@ shinyServer(function(input, output) {
                                     tm_borders())
     
     # Global Analysis tab ---- 
-    # create_D1_E4_WO_NA <- reactive({
-    #   readRDS("app-data/protected_data/table_D1_E4_WO_NA.RDS")
-    # })
+    create_bar_data <- reactive({
+       switch (input$global_ana_variable,
+         "E4" = return(table_D1_E4_WO_NA),
+         "E8" = return(table_D1_E8_WO_NA),
+         "E3" = return(table_D1_E3_WO_NA),
+         "D7a" = return(table_D1_D7a_WO_NA)
+       )
+    })
+    bar_fill <- reactive({
+      switch (input$global_ana_variable,
+              "E4" = return(table_D1_E4_WO_NA[["E4"]]),
+              "E8" = return(table_D1_E8_WO_NA[["E8"]]),
+              "E3" = return(table_D1_E3_WO_NA[["E3"]]),
+              "D7a" = return(table_D1_D7a_WO_NA[["D7a"]])
+      )
+    })
+    bar_name <- reactive({
+      switch (input$global_ana_variable,
+              "E4" = return("E4"),
+              "E8" = return("E8"),
+              "E3" = return("E3"),
+              "D7a" = return("D7a")
+      )
+    })
+    
     output$global_micro_ana_bar <- renderPlotly({
-      ggplotly(ggplot(table_D1_E4_WO_NA, aes(x = D1, y = perc)) + 
-                 geom_bar(mapping = aes(fill = E4), position = "dodge", stat = "identity") +
-                 labs(title = "D1 (nervous) vs E4 (age group)", 
-                      y = "relative frequencies",
+      ggplotly(ggplot(create_bar_data(), aes(x = D1, y = perc)) + 
+                 geom_bar(mapping = aes(fill = bar_fill()), position = "dodge", stat = "identity") +
+                 labs(y = "relative frequencies",
                       x = "D1 (nervous)",) + 
-                 scale_fill_brewer(palette = "Blues", name = "E4 (age group)"))})
+                 scale_fill_brewer(palette = "Blues", name = ""))})
     
     
     # Continent Analysis tab---- 
