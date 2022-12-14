@@ -77,7 +77,7 @@ shinyServer(function(input, output) {
                  scale_fill_brewer(palette = "Blues", name = "E4 (age group)"))})
     
     
-    # Continent Analysis tab----
+    # Continent Analysis tab---- 
     create_continent_policy <- reactive({
       data_CTIS_policy %>% 
         filter(continent %in% input$cont_ana_continent) %>% 
