@@ -95,7 +95,9 @@ shinyServer(function(input, output) {
                  geom_bar(mapping = aes(fill = bar_fill()), position = "dodge", stat = "identity") +
                  labs(y = "relative frequencies",
                       x = "D1 (nervous)",) + 
-                 scale_fill_brewer(palette = "Blues", name = ""))})
+                 scale_fill_brewer(palette = "Blues", name = "")+
+                 theme(legend.position = "bottom"))%>%
+        layout(legend = list(orientation = "h", x = 0.4, y = -0.2))})
     
     
     # Continent Analysis tab---- 
