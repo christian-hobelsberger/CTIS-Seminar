@@ -89,16 +89,49 @@ shinyServer(function(input, output) {
               "D7a" = return("D7a")
       )
     })
+    create_line_data <- reactive({
+      switch (input$global_ana_variable,
+              "E4" = return(table_D1_E4_Date),
+              "E8" = return(table_D1_E8_Date),
+              "E3" = return(table_D1_E3_Date),
+              "D7a" = return(table_D1_D7a_Date)
+      )
+    })
+    facet_wrap_var <- reactive({
+      switch (input$global_ana_variable,
+              "E4" = return("E4"),
+              "E8" = return("E8"),
+              "E3" = return("E3"),
+              "D7a" = return("D7a")
+      )
+    })
+    
+    pick_plot <- reactive({
+      if(!input$global_ana_checkbox) {
+        return(
+          ggplotly(ggplot(data = create_bar_data(), aes(x = D1, y = perc)) + 
+                                   geom_bar(mapping = aes(fill = bar_fill()), position = "dodge", stat = "identity") +
+                                   labs(y = "relative frequencies",
+                                        x = "D1 (nervous)",) + 
+                                   scale_fill_brewer(palette = "Blues", name = "")+
+                                   theme(legend.position = "bottom"))%>%
+              layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+        )
+      } else {
+        return(
+          ggplot(data = create_line_data(), mapping = aes(x = RecordedDate, y = perc)) +
+              geom_line(mapping = aes(color = D1)) +
+              facet_wrap(facets = facet_wrap_var())+
+            theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+              labs(y = "relative frequencies",
+                   color = "D1 (nervous)")
+        )
+      }
+    })
     
     output$global_micro_ana_bar <- renderPlotly({
-      ggplotly(ggplot(create_bar_data(), aes(x = D1, y = perc)) + 
-                 geom_bar(mapping = aes(fill = bar_fill()), position = "dodge", stat = "identity") +
-                 labs(y = "relative frequencies",
-                      x = "D1 (nervous)",) + 
-                 scale_fill_brewer(palette = "Blues", name = "")+
-                 theme(legend.position = "bottom"))%>%
-        layout(legend = list(orientation = "h", x = 0.4, y = -0.2))})
-    
+      return(pick_plot())
+    })
     
     # Continent Analysis tab---- 
     create_continent_policy <- reactive({
