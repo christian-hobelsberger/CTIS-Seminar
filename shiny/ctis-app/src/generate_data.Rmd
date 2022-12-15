@@ -1,0 +1,100 @@
+# Load packages
+```{r Load packages}
+library(tidyverse)
+library(timetk)
+```
+
+
+# Loading the microdata
+```{r Loading the microdata}
+CTIS_microdata <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
+
+table_D1_E4_WO_NA <- CTIS_microdata %>%
+  select(D1, E4) %>%
+  drop_na() %>%
+  group_by(E4, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+saveRDS(object = table_D1_E4_WO_NA, "shiny/ctis-app/app-data/protected_data/table_D1_E4_WO_NA.RDS")
+  
+table_D1_E8_WO_NA <- CTIS_microdata %>%
+  select(D1, E8) %>%
+  drop_na() %>%
+  group_by(E8, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+saveRDS(object = table_D1_E8_WO_NA, "shiny/ctis-app/app-data/protected_data/table_D1_E8_WO_NA.RDS")
+
+table_D1_E3_WO_NA <- CTIS_microdata %>%
+  select(D1, E3) %>%
+  drop_na() %>%
+  group_by(E3, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+saveRDS(object = table_D1_E3_WO_NA, "shiny/ctis-app/app-data/protected_data/table_D1_E3_WO_NA.RDS")
+  
+table_D1_D7a_WO_NA <- CTIS_microdata %>%
+  select(D1, D7a) %>%
+  drop_na() %>%
+  group_by(D7a, D1) %>%
+  summarise(n = n()) %>%
+  mutate(perc = n / sum(n))
+saveRDS(object = table_D1_D7a_WO_NA, "shiny/ctis-app/app-data/protected_data/table_D1_D7a_WO_NA.RDS")
+
+
+## D1 vs Covariable vs Date
+
+
+table_D1_E4_Date <- CTIS_microdata %>%
+  select(RecordedDate, D1, E4) %>%
+  drop_na() %>%
+  filter(RecordedDate < as.Date("2022-06-01")) %>%
+  group_by(E4, D1) %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "week",
+                    n = n()) %>%
+  group_by(E4, RecordedDate) %>%
+  mutate(perc = n/sum(n))  %>%
+  filter(n >= 3)
+saveRDS(object = table_D1_E4_Date, "shiny/ctis-app/app-data/protected_data/table_D1_E4_Date.RDS")
+
+table_D1_E8_Date <- CTIS_microdata %>%
+  select(RecordedDate, D1, E8) %>%
+  drop_na() %>%
+  filter(RecordedDate < as.Date("2022-06-01")) %>%
+  group_by(E8, D1) %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "week",
+                    n = n()) %>%
+  group_by(E8, RecordedDate) %>%
+  mutate(perc = n/sum(n)) %>%
+  filter(n >= 3)
+saveRDS(object = table_D1_E8_Date, "shiny/ctis-app/app-data/protected_data/table_D1_E8_Date.RDS")
+
+table_D1_E3_Date <- CTIS_microdata %>%
+  select(RecordedDate, D1, E3) %>%
+  drop_na() %>%
+  filter(RecordedDate < as.Date("2022-06-01")) %>%
+  group_by(E3, D1) %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "week",
+                    n = n()) %>%
+  group_by(E3, RecordedDate) %>%
+  mutate(perc = n/sum(n)) %>%
+  filter(n >= 3)
+saveRDS(object = table_D1_E3_Date, "shiny/ctis-app/app-data/protected_data/table_D1_E3_Date.RDS")
+
+table_D1_D7a_Date <- CTIS_microdata %>%
+  select(RecordedDate, D1, D7a) %>%
+  drop_na() %>%
+  filter(RecordedDate < as.Date("2022-06-01")) %>%
+  group_by(D7a, D1) %>%
+  summarise_by_time(.date_var = RecordedDate,
+                    .by = "week",
+                    n = n()) %>%
+  group_by(D7a, RecordedDate) %>%
+  mutate(perc = n/sum(n)) %>%
+  filter(n >= 3)
+saveRDS(object = table_D1_D7a_Date, "shiny/ctis-app/app-data/protected_data/table_D1_D7a_Date.RDS")
+```
+

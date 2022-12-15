@@ -4,6 +4,8 @@
 .Ruserdata
 .DS_Store
 data/microdata
+map.html
 data/protected_data
+shiny/ctis-app/app-data/protected_data
 CTIS_microdata.csv
 .RDataTmp

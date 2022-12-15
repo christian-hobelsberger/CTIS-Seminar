@@ -52,25 +52,26 @@ write_csv(x = CTIS_microdata, file = "protected_data/CTIS_microdata_complete.csv
 
 # Loading the microdata
 CTIS_microdata <- readr::read_csv(file = "protected_data/CTIS_microdata_complete.csv", col_names = TRUE,
-                                  col_types = c(.default = "f", weight = "d", RecordedDate = "T"))
+                                  col_types = c(.default = "f", weight = "d", RecordedDate = "T"), 
+                                  na = c("NA", "-99", "-88", "-77"))
 
 # Validation if unique days equal number of csv files
 length(unique(as.Date(CTIS_microdata_complete$RecordedDate))) == length(csv_files)
 
 # Show levels for all factor variables
-sapply(CTIS_microdata[,-c(3,5)], levels)
+sapply(CTIS_microdata[,-c(3,5)], print)
 
 # Remove all observations with absurd E5 (number of people slept at the same place) values
 CTIS_microdata_clean <- 
-  CTIS_microdata[-(which(!(CTIS_microdata[["E5"]] %in% c(1:75, "NA", -99, -77)))), ]
+  CTIS_microdata[-(which(!(CTIS_microdata[["E5"]] %in% c(1:75, NA, -99, -77)))), ]
 
 # Remove all observations with unfitting D10 (main activity of the business) values
 CTIS_microdata_clean <- 
-  CTIS_microdata_clean[-(which(!(CTIS_microdata_clean[["D10"]] %in% c(1:15, "NA", -99, -77)))), ]
+  CTIS_microdata_clean[-(which(!(CTIS_microdata_clean[["D10"]] %in% c(1:15, NA, -99, -77)))), ]
 
 # Remove all observations with unfitting E7a (Number of rooms for sleeping) values
 CTIS_microdata_clean <- 
-  CTIS_microdata_clean[-(which(!(CTIS_microdata_clean[["E7a"]] %in% c(1:50, "NA", -99, -77)))), ]
+  CTIS_microdata_clean[-(which(!(CTIS_microdata_clean[["E7a"]] %in% c(1:50, NA, -99, -77)))), ]
 
 # Drop Levels
 CTIS_microdata_clean <- droplevels(CTIS_microdata_clean)
@@ -78,7 +79,115 @@ CTIS_microdata_clean <- droplevels(CTIS_microdata_clean)
 # Show levels for all factor variables on cleaned up data
 sapply(CTIS_microdata_clean[,-c(3,5)], levels)
 
+# Adjust levels for data
+levels(CTIS_microdata_clean$D1) <- list(
+  "None of the time" = "5",
+  "A little of the time" = "4",
+  "Some of the time" = "3",
+  "Most of the time" = "2",
+  "All the time" = "1"
+)
+
+levels(CTIS_microdata_clean$D2) <- list(
+  "None of the time" = "5",
+  "A little of the time" = "4",
+  "Some of the time" = "3",
+  "Most of the time" = "2",
+  "All the time" = "1"
+)
+
+levels(CTIS_microdata_clean$D4) <- list(
+  "Not worried at all" = "4",
+  "Not too worried" = "3",
+  "Somewhat worried" = "2",
+  "Very worried" = "1"
+)
+
+levels(CTIS_microdata_clean$E3) <- list(
+  "Male" = "1",
+  "Female" = "2",
+  "Other" = "3",
+  "Prefer not to answer" = "4"
+)
+
+levels(CTIS_microdata_clean$E4) <- list(
+  "18-24" = "1",
+  "25-34" = "2",
+  "35-44" = "3",
+  "45-54" = "4",
+  "55-64" = "5",
+  "65-74" = "6",
+  "75+" = "7"
+)
+
+levels(CTIS_microdata_clean$E2) <- list(
+  "City" = "1",
+  "Town" = "2",
+  "Village or rural area" = "3"
+)
+
+levels(CTIS_microdata_clean$D5) <- list(
+  "Not worried at all" = "4",
+  "Not too worried" = "3",
+  "Somewhat worried" = "2",
+  "Very worried" = "1"
+)
+
+
+levels(CTIS_microdata_clean$D10) <- list(
+  "Agriculture" = "1",
+  "Buying and selling" = "2",
+  "Construction" = "3",
+  "Education" = "4",
+  "Electricity/water/gas/waste" = "5",
+  "Financial/insurance/real estate services" = "6",
+  "Health" = "7",
+  "Manufacturing" = "8",
+  "Mining" = "9",
+  "Personal services" = "10",
+  "Professional/scientific/technical activities" = "11",
+  "Public administration" = "12",
+  "Tourism" = "13",
+  "Transportation" = "14",
+  "Other" = "15"
+)
+
+levels(CTIS_microdata_clean$V11) <- list(
+  "Yes" = "1",
+  "No" = "2"
+)
+
+levels(CTIS_microdata_clean$E8) <- list(
+  "No formal schooling" = "1",
+  "Less than primary school" = "2",
+  "Primary school completed" = "3",
+  "Secondary school complete" = "4",
+  "High school (or equivalent) completed" = "5",
+  "College/ pre-university/ University completed" = "6",
+  "University post-graduate degree completed" = "7"
+)
+
+levels(CTIS_microdata_clean$D7a) <- list(
+  "Yes" = "1",
+  "No" = "2"
+)
+
+# Add order
+for (element in c("D1", "D2", "D4", "E4", "D5", "E8")) {
+  CTIS_microdata_clean[[element]] <- as.ordered(CTIS_microdata_clean[[element]])
+}
+
+
+# Read policy_data
+policy_data <- readRDS(file = "data/policy_data.RDS")
+
+# 
+# data_CTIS_policy <- data_CTIS %>% 
+#   left_join(policy_data, by = c("data.country", "data.iso_code", "data.survey_date" = "data.date"))
+
 # Save clean microdata
-write_csv(x = CTIS_microdata_clean, file = "protected_data/CTIS_microdata_clean.csv")
+saveRDS(object = CTIS_microdata_clean, file = "data/protected_data/CTIS_microdata_cleanV3.RDS")
+
+write_csv(x = CTIS_microdata_clean, file = "data/protected_data/CTIS_microdata_cleanV3.csv")
 ```
 
