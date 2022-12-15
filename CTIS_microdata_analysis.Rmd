@@ -1,6 +1,10 @@
 ### Chris: Advanced microdata analysis
 
 ```{r Chris: microdata analysis}
+# Load packages
+library(dplyr)
+library(timetk)
+
 # Loading the microdata
 CTIS_microdata <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
 
