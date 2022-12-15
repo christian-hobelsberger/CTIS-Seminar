@@ -25,6 +25,12 @@ table_D1_E4_WO_NA <- readRDS("app-data/protected_data/table_D1_E4_WO_NA.RDS")
 table_D1_E8_WO_NA <- readRDS("app-data/protected_data/table_D1_E8_WO_NA.RDS")
 table_D1_E3_WO_NA <- readRDS("app-data/protected_data/table_D1_E3_WO_NA.RDS")
 table_D1_D7a_WO_NA <- readRDS("app-data/protected_data/table_D1_D7a_WO_NA.RDS")
+
+table_D1_E4_Date <- readRDS("app-data/protected_data/table_D1_E4_Date.RDS")
+table_D1_E8_Date <- readRDS("app-data/protected_data/table_D1_E8_Date.RDS")
+table_D1_E3_Date <- readRDS("app-data/protected_data/table_D1_E3_Date.RDS")
+table_D1_D7a_Date <- readRDS("app-data/protected_data/table_D1_D7a_Date.RDS")
+
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
   
@@ -89,16 +95,96 @@ shinyServer(function(input, output) {
               "D7a" = return("D7a")
       )
     })
+
+    create_line_data <- reactive({
+      switch (input$global_ana_variable,
+              "E4" = return(table_D1_E4_Date),
+              "E8" = return(table_D1_E8_Date),
+              "E3" = return(table_D1_E3_Date),
+              "D7a" = return(table_D1_D7a_Date)
+      )
+    })
+    facet_wrap_var <- reactive({
+      switch (input$global_ana_variable,
+              "E4" = return("E4"),
+              "E8" = return("E8"),
+              "E3" = return("E3"),
+              "D7a" = return("D7a")
+      )
+    })
+
+    
+    pick_plot <- reactive({
+      if(!input$global_ana_checkbox) {
+        if (input$global_ana_variable == "E4") {
+          return(
+            ggplotly(ggplot(data = table_D1_E4_Date, aes(x = D1, y = perc)) + 
+                       geom_bar(mapping = aes(fill = E4), position = "dodge", stat = "identity") +
+                       labs(title = "D1 (nervous) vs E4 (age group)", 
+                            y = "relative frequencies",
+                            x = "D1 (nervous)",) + 
+                       scale_fill_brewer(palette = "Blues", name = "")+
+                       theme(legend.position = "bottom"))%>%
+              layout(legend = list(orientation = "h", x = 0.4, y = -0.2), width = "800px", heigth = "500px")
+          )
+        } else if (input$global_ana_variable == "E8") {
+          return(
+            ggplotly(ggplot(data = table_D1_E8_Date, aes(x = D1, y = perc)) + 
+                       geom_bar(mapping = aes(fill = E8), position = "dodge", stat = "identity") +
+                       labs(title = "D1 (nervous) vs E8 (highest education-level)", 
+                            y = "relative frequencies",
+                            x = "D1 (nervous)",) + 
+                       scale_fill_brewer(palette = "Blues", name = "")+
+                       theme(legend.position = "bottom"))%>%
+              layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+          )
+        } else if (input$global_ana_variable == "E3") {
+          return(
+            ggplotly(ggplot(data = table_D1_E3_Date, aes(x = D1, y = perc)) + 
+                       geom_bar(mapping = aes(fill = E3), position = "dodge", stat = "identity") +
+                       labs(title = "D1 (nervous) vs E3 (gender)", 
+                            y = "relative frequencies",
+                            x = "D1 (nervous)",) + 
+                       scale_fill_brewer(palette = "Blues", name = "")+
+                       theme(legend.position = "bottom"))%>%
+              layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+          )
+        } else {
+          return(
+            ggplotly(ggplot(data = table_D1_D7a_Date, aes(x = D1, y = perc)) + 
+                       geom_bar(mapping = aes(fill = D7a), position = "dodge", stat = "identity") +
+                       labs(title = "D1 (nervous) vs D7a (work last 4 weeks)", 
+                            y = "relative frequencies",
+                            x = "D1 (nervous)",) + 
+                       scale_fill_brewer(palette = "Blues", name = "")+
+                       theme(legend.position = "bottom"))%>%
+              layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+          )
+        }
+        # return(
+        #   ggplotly(ggplot(data = create_bar_data(), aes(x = D1, y = perc)) + 
+        #                            geom_bar(mapping = aes(fill = bar_fill()), position = "dodge", stat = "identity") +
+        #                            labs(y = "relative frequencies",
+        #                                 x = "D1 (nervous)",) + 
+        #                            scale_fill_brewer(palette = "Blues", name = "")+
+        #                            theme(legend.position = "bottom"))%>%
+        #       layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+        # )
+      } else {
+        return(
+          ggplot(data = create_line_data(), mapping = aes(x = RecordedDate, y = perc)) +
+              geom_line(mapping = aes(color = D1)) +
+              facet_wrap(facets = facet_wrap_var()) +
+            theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+              labs(y = "relative frequencies",
+                   color = "D1 (nervous)")
+        )
+      }
+    })
     
     output$global_micro_ana_bar <- renderPlotly({
-      ggplotly(ggplot(create_bar_data(), aes(x = D1, y = perc)) + 
-                 geom_bar(mapping = aes(fill = bar_fill()), position = "dodge", stat = "identity") +
-                 labs(y = "relative frequencies",
-                      x = "D1 (nervous)",) + 
-                 scale_fill_brewer(palette = "Blues", name = "")+
-                 theme(legend.position = "bottom"))%>%
-        layout(legend = list(orientation = "h", x = 0.4, y = -0.2))})
-    
+      return(pick_plot())
+    })
     
     # Continent Analysis tab---- 
     create_continent_policy <- reactive({

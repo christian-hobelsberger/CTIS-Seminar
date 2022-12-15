@@ -86,7 +86,11 @@ shinyUI(fluidPage(
                                                  "Gender (E3)"= "E3", 
                                                  "Worked last 4 weeks (D7a)"= "D7a"),
                                      selected = "E4",
-                                     width = "220px")
+                                     width = "220px"),
+                         checkboxInput("global_ana_checkbox",
+                                     label = "Show over time",
+                                     value = FALSE,
+                                     width = "200px")
                      ),
                      mainPanel(
                          plotlyOutput("global_micro_ana_bar")
