@@ -45,8 +45,9 @@ shinyServer(function(input, output) {
 
     fill <- reactive({
       tm_fill(input$variable, id = "data.country", 
-                              popup.vars = c(input$variable, "Stay home req. level" = "stay_home_requirements", "School closure level" = "school_closures"))})
-    output$global_map <- renderTmap(tm_shape(create_mapdata())+
+                              popup.vars = c(input$variable, "Stay home req. level" = "stay_home_requirements", "School closure level" = "school_closures"),
+              breaks = seq(from = 0, to = 1, 0.1))})
+    output$global_map <- renderTmap(tm_shape(create_mapdata(), name= "CTIS Data")+
                                         fill()+
                                         tm_borders())
     ## Continent ----
@@ -58,9 +59,10 @@ shinyServer(function(input, output) {
     })
     fill_cont <- reactive({
       tm_fill(input$cont_variable, id = "data.country", 
-              popup.vars = c(input$cont_variable, "Stay home req. level" = "stay_home_requirements", "School closure level" = "school_closures"))})
+              popup.vars = c(input$cont_variable, "Stay home req. level" = "stay_home_requirements", "School closure level" = "school_closures"),
+              breaks = seq(from = 0, to = 1, 0.1))})
     
-    output$cont_map <- renderTmap(tm_shape(create_cont_mapdata())+
+    output$cont_map <- renderTmap(tm_shape(create_cont_mapdata(), name = "CTIS Data")+
                                     fill_cont()+
                                     tm_borders())
     
