@@ -199,7 +199,7 @@ shinyServer(function(input, output) {
                    facet_wrap(vars(continent))+
                    geom_line(size = 0.1)+
                    labs(x = "Survey date",
-                        y = "Country mean of variable"))})
+                        y = "Continent mean of variable"))})
   
       
       
