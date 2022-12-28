@@ -52,7 +52,7 @@ write_csv(x = CTIS_microdata, file = "protected_data/CTIS_microdata_complete.csv
 
 # Loading the microdata
 CTIS_microdata <- readr::read_csv(file = "protected_data/CTIS_microdata_complete.csv", col_names = TRUE,
-                                  col_types = c(.default = "f", weight = "d", RecordedDate = "T"), 
+                                  col_types = c(.default = "f", weight = "d", RecordedDate = "T", E7a = "d"), 
                                   na = c("NA", "-99", "-88", "-77"))
 
 # Validation if unique days equal number of csv files
@@ -189,5 +189,13 @@ policy_data <- readRDS(file = "data/policy_data.RDS")
 saveRDS(object = CTIS_microdata_clean, file = "data/protected_data/CTIS_microdata_cleanV3.RDS")
 
 write_csv(x = CTIS_microdata_clean, file = "data/protected_data/CTIS_microdata_cleanV3.csv")
+
+# quick fix: E7a data type
+# Loading the microdata
+#CTIS_microdata <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
+#
+#CTIS_microdata[["E7a"]] <- as.numeric(CTIS_microdata[["E7a"]])
+#
+#write_csv(x = CTIS_microdata, file = "data/protected_data/CTIS_microdata_cleanV3.csv")
 ```
 
