@@ -1,0 +1,93 @@
+---
+title: "CTIS_Model"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(include = FALSE)
+library(tidyverse)
+library(corrplot)
+library(olsrr)
+```
+
+```{r include=FALSE}
+CTIS_micro <- readRDS("~/CTIS-Seminar/data/protected_data/CTIS_microdata_cleanV3.RDS")
+
+CTIS_macro <- readRDS("~/CTIS-Seminar/data/data_CTIS_policy.RDS")
+```
+
+```{r}
+head(CTIS_macro)
+str(CTIS_macro)
+```
+# Check correlation before regression
+```{r}
+# Get numeric data
+nums <- unlist(lapply(CTIS_macro, is.numeric), use.names = FALSE)
+
+
+res <- cor(CTIS_macro[ , nums], use = "complete.obs")
+round(res, 2)
+
+corrplot(res, method="color", type = "upper")
+```
+
+
+
+# Global Mean
+```{r}
+CTIS_macro %>% 
+  group_by(data.survey_date) %>% 
+  summarise(global_mean = mean(anxious_7d)) %>% 
+  ggplot(aes(x = data.survey_date, y = global_mean))+
+  geom_line()
+```
+
+# Continent Mean
+```{r}
+CTIS_macro %>% 
+  group_by(data.survey_date, continent) %>% 
+  summarise(continent_mean = mean(anxious_7d)) %>% 
+  ggplot(aes(x = data.survey_date, y = continent_mean))+
+  geom_line()+
+  facet_wrap(vars(continent))
+```
+
+# Global Model Fit
+
+```{r}
+global_aggregate <- CTIS_macro %>% 
+group_by(data.survey_date) %>%
+summarise(across(everything(), ~ mean(.x, na.rm = TRUE))) %>% 
+  select(data.survey_date, anxious_7d, finance, food_security, worried_become_ill,
+         retail_and_recreation, grocery_and_pharmacy, residential, transit_stations, parks,
+         workplaces) # Select only columns that have a mean
+
+
+
+model <- lm(anxious_7d ~ ., data = global_aggregate)
+best_sub <- ols_step_best_subset(model)
+plot(best_sub)
+```
+
+```{r}
+best_sub # Model 6 looks nice
+```
+```{r}
+best_sub_model <- lm(formula = anxious_7d ~ data.survey_date + finance+ retail_and_recreation + grocery_and_pharmacy + residential + transit_stations, 
+                     data = global_aggregate)
+
+summary(best_sub_model)
+```
+
+# Plot with simple model
+```{r}
+predicted_df <- data.frame(anxious_pred = predict(best_sub_model, global_aggregate), data.survey_date = global_aggregate$data.survey_date)
+
+
+global_aggregate %>% 
+  ggplot(aes(x = data.survey_date, y = anxious_7d))+
+  geom_line()+
+  geom_line(color='red',data = predicted_df, aes(x = data.survey_date, y = anxious_pred))
+```
+
