@@ -196,6 +196,6 @@ write_csv(x = CTIS_microdata_clean, file = "data/protected_data/CTIS_microdata_c
 #
 #CTIS_microdata[["E7a"]] <- as.numeric(CTIS_microdata[["E7a"]])
 #
-#write_csv(x = CTIS_microdata, file = "data/protected_data/CTIS_microdata_cleanV3.csv")
+#saveRDS(object = CTIS_microdata, file = "data/protected_data/CTIS_microdata_cleanV3.RDS")
 ```
 
