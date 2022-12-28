@@ -80,7 +80,7 @@ best_sub_model <- lm(formula = anxious_7d ~ data.survey_date + finance+ retail_a
 summary(best_sub_model)
 ```
 
-# Plot with simple model
+# Plot with simple model 
 ```{r}
 predicted_df <- data.frame(anxious_pred = predict(best_sub_model, global_aggregate), data.survey_date = global_aggregate$data.survey_date)
 
