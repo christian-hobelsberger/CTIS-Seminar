@@ -6,8 +6,13 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(include = FALSE)
 library(tidyverse)
+library(party)
+library(rpart)
+library(caret)
+library(rpart.plot)
 library(corrplot)
 library(olsrr)
+library(glmnet)
 ```
 
 ```{r include=FALSE}
@@ -278,5 +283,36 @@ hist(best_sub_model_continent$residuals, color = "grey")
 ```{r}
 # Checkign important plots
 plot(best_sub_model_continent)
-
 ```
+
+
+# Logistic regression
+```{r}
+set.seed(1234)
+CTIS_micro$worried <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[3:5], TRUE, FALSE )
+ind <- sample(2, nrow(CTIS_micro), replace = T, prob = c(0.5, 0.5))
+train <- CTIS_micro[ind == 1,]
+test <- CTIS_micro[ind == 2,]
+model_1 <- glm(worried ~ E3 + E4 + E2 + V11 + E8 ,family=binomial(link='logit'), data=train)
+model_2 <- glm(worried ~ E3 + E4 + E2 + V11 ,family=binomial(link='logit'), data=train)
+```
+
+# Logistic Lasso Regression
+```{r}
+training.samples <- CTIS_micro$worried %>% 
+  createDataPartition(p = 0.8, list = FALSE)
+train.data  <- CTIS_micro[training.samples, ]
+test.data <- CTIS_micro[-training.samples, ]
+
+# Dumy code categorical predictor variables
+x <- model.matrix(worried~., train.data)[,-1]
+# Convert the outcome (class) to a numerical variable
+y <- ifelse(train.data$worried == TRUE, 1, 0)
+
+cv.lasso <- cv.glmnet(x, y, alpha = 1, family = "binomial")
+# Fit the final model on the training data
+model <- glmnet(x, y, alpha = 1, family = "binomial",
+                lambda = cv.lasso$lambda.min)
+```
+
+
