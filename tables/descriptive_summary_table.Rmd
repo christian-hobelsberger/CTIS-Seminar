@@ -1,0 +1,107 @@
+---
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+CTIS_micro[, c("D1", "E4", "E8", "E3", "D7a")] %>% 
+    `colnames<-` (c("During the past 7 days, how often did you feel so nervous that nothing could calm you down?", "What is your age?", "What is the highest level of education that you have completed?", "What is your gender?", "In the past 4 weeks, did you do any work for pay? By work for pay, we mean any kind of business, farming, or other activity to earn money, even if only for one hour.")) |> desctable::desc_table() |> pander::pander()
+```
+
+##### Table 1.  Summary statistics of categorical model variables (n = 66,613,710)
+
+----------------------------------------------------
+           Variables                 N         %    
+-------------------------------- ---------- --------
+ **During the past 7 days, how    45318361     NA   
+ often did you feel so nervous                      
+  that nothing could calm you                       
+            down? (D1)**                                 
+
+      *None of the time*          26878522   59.31  
+                      
+
+*A little of the time*            9548836    21.07  
+                                 
+
+*Some of the time*                6122466    13.51  
+                       
+
+*Most of the time*                1972948    4.354  
+ 
+
+*All the time*                    795589    1.756  
+                       
+
+     **What is your age? (E4)**   54918689     NA   
+
+*18-24*                           6749688    12.29  
+
+*25-34*                           12502223   22.76  
+
+*35-44*                           11752776    21.4  
+
+*45-54*                           10183333   18.54  
+
+*55-64*                           8084732    14.72  
+
+*65-74*                           4484351    8.165  
+
+*75+*                             1161586    2.115  
+
+ **What is the highest level of   23515043     NA   
+    education that you have                         
+          completed? (E8)**                              
+
+*No formal schooling*             92827     0.3948 
+                              
+
+*Less than primary school*        214264    0.9112 
+                         
+
+*Primary school completed*        908531    3.864  
+                             
+
+*Secondary school complete*       2987295     12.7  
+                        
+
+*High school (or                  6265713    26.65  
+     equivalent) completed*
+                      
+
+*College/pre-university/          9797885    41.67  
+University completed*                             
+
+*University post-graduate degree  3248528    13.81  
+           completed*                                
+
+
+    **What is your gender? (E3)** 54700532     NA   
+
+*Male*                            27220165   49.76  
+                                 
+
+*Female*                          26893157   49.16  
+                               
+
+*Other*                           135765    0.2482 
+                                             
+
+*Prefer not to answer*            451445    0.8253 
+                              
+
+ **In the past 4 weeks, did you   21663654     NA   
+  do any work for pay? By work                      
+  for pay, we mean any kind of                      
+  business, farming, or other                       
+  activity to earn money, even                      
+    if only for one hour. (D7a)**                         
+
+*Yes*                             13061530   60.29  
+                     
+
+*No*                              8602124    39.71  
+                     
+----------------------------------------------------
