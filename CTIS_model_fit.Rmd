@@ -339,6 +339,7 @@ summary(boost_micro)
 
 # Ordinal logistic regression
 ```{r}
+# Doesn't run
 ord_log_reg_model <- polr(D1 ~ E4 + E8 + E3 + D7a, data = CTIS_micro, Hess = TRUE)
 summary(boost_micro)
 ```
