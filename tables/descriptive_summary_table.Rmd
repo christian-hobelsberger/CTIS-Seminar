@@ -6,6 +6,8 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+CTIS_micro <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
+
 CTIS_micro[, c("D1", "E4", "E8", "E3", "D7a")] %>% 
     `colnames<-` (c("During the past 7 days, how often did you feel so nervous that nothing could calm you down?", "What is your age?", "What is the highest level of education that you have completed?", "What is your gender?", "In the past 4 weeks, did you do any work for pay? By work for pay, we mean any kind of business, farming, or other activity to earn money, even if only for one hour.")) |> desctable::desc_table() |> pander::pander()
 ```

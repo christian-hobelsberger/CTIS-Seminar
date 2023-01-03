@@ -10,6 +10,7 @@ library(party)
 library(rpart)
 library(caret)
 library(rpart.plot)
+library(mboost)
 library(corrplot)
 library(olsrr)
 library(glmnet)
@@ -294,7 +295,7 @@ plot(best_sub_model_continent)
 # Logistic regression
 ```{r}
 set.seed(1234)
-CTIS_micro$worried <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[3:5], TRUE, FALSE )
+CTIS_micro$worried <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
 ind <- sample(2, nrow(CTIS_micro), replace = T, prob = c(0.5, 0.5))
 train <- CTIS_micro[ind == 1,]
 test <- CTIS_micro[ind == 2,]
@@ -303,22 +304,12 @@ model_2 <- glm(worried ~ E3 + E4 + E2 + V11 ,family=binomial(link='logit'), data
 model_3 <- glm(D1 ~ E4 + E8 + E3 + D7a ,family=binomial(link='logit'), data=train)
 ```
 
-# Logistic Lasso Regression
+# mboost approach
 ```{r}
-training.samples <- CTIS_micro$worried %>% 
-  createDataPartition(p = 0.8, list = FALSE)
-train.data  <- CTIS_micro[training.samples, ]
-test.data <- CTIS_micro[-training.samples, ]
+CTIS_micro$worried <- as.factor(CTIS_micro$worried)
+glm <- glmboost(worried ~ E3 + E4 + E2 + V11 + E8 , family = Binomial(link='logit'), 
+                data = CTIS_micro, control= boost_control(trace=TRUE))
 
-# Dumy code categorical predictor variables
-x <- model.matrix(worried~., train.data)[,-1]
-# Convert the outcome (class) to a numerical variable
-y <- ifelse(train.data$worried == TRUE, 1, 0)
-
-cv.lasso <- cv.glmnet(x, y, alpha = 1, family = "binomial")
-# Fit the final model on the training data
-model <- glmnet(x, y, alpha = 1, family = "binomial",
-                lambda = cv.lasso$lambda.min)
 ```
 
 # Component-Wise Boosting
