@@ -13,6 +13,12 @@ library(rpart.plot)
 library(corrplot)
 library(olsrr)
 library(glmnet)
+library(desctable)
+library(pander)
+library(effects)
+library(arsenal)
+library(mboost)
+library(MASS)
 ```
 
 ```{r include=FALSE}
@@ -36,7 +42,6 @@ round(res, 2)
 
 corrplot(res, method="color")
 ```
-
 
 
 # Global Mean
@@ -295,6 +300,7 @@ train <- CTIS_micro[ind == 1,]
 test <- CTIS_micro[ind == 2,]
 model_1 <- glm(worried ~ E3 + E4 + E2 + V11 + E8 ,family=binomial(link='logit'), data=train)
 model_2 <- glm(worried ~ E3 + E4 + E2 + V11 ,family=binomial(link='logit'), data=train)
+model_3 <- glm(D1 ~ E4 + E8 + E3 + D7a ,family=binomial(link='logit'), data=train)
 ```
 
 # Logistic Lasso Regression
@@ -315,4 +321,26 @@ model <- glmnet(x, y, alpha = 1, family = "binomial",
                 lambda = cv.lasso$lambda.min)
 ```
 
+# Component-Wise Boosting
+```{r}
+boost_micro <- glmboost(D1 ~ RecordedDate + D2 + D4 + E3 + E4 + E2 + E5 + 
+                          D5 + D10 + V11 + E8 + E7a + D7a + worried, 
+                      data = CTIS_micro,
+                      control = boost_control(nu = 0.1, mstop = 200))
+summary(boost_micro)
+
+
+boost_micro <- glmboost(D1 ~ + E4 + E8 + E3 + D7a, 
+                      data = CTIS_micro,
+                      control = boost_control(nu = 0.1, mstop = 200))
+summary(boost_micro)
+
+```
+
+# Ordinal logistic regression
+```{r}
+# Doesn't run
+ord_log_reg_model <- polr(D1 ~ E4 + E8 + E3 + D7a, data = CTIS_micro, Hess = TRUE)
+summary(boost_micro)
+```
 
