@@ -301,7 +301,12 @@ train <- CTIS_micro[ind == 1,]
 test <- CTIS_micro[ind == 2,]
 model_1 <- glm(worried ~ E3 + E4 + E2 + V11 + E8 ,family=binomial(link='logit'), data=train)
 model_2 <- glm(worried ~ E3 + E4 + E2 + V11 ,family=binomial(link='logit'), data=train)
-model_3 <- glm(D1 ~ E4 + E8 + E3 + D7a ,family=binomial(link='logit'), data=train)
+model_3 <- glm(worried ~ E4 + E8 + E3 + D7a ,family=binomial(link='logit'), data=train)
+model_4 <- glm(worried ~ E4 + E8 + E3 + D7a ,family=binomial(link='logit'), data=CTIS_micro)
+model_5 <- glm(worried ~ factor(E4 , ordered = FALSE ) + factor(E8 , ordered = FALSE ) + factor(E3 , ordered = FALSE ) +
+                 factor(D7a , ordered = FALSE ) ,family=binomial(link='logit'), data=CTIS_micro)
+summary(model_4)
+summary(model_5)
 ```
 
 # mboost approach
