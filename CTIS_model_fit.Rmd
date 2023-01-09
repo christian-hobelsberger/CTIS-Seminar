@@ -21,6 +21,7 @@ library(effects)
 library(arsenal)
 library(mboost)
 library(MASS)
+library(effects)
 ```
 
 ```{r include=FALSE}
@@ -301,8 +302,17 @@ ind <- sample(2, nrow(CTIS_micro), replace = T, prob = c(0.5, 0.5))
 train <- CTIS_micro[ind == 1,]
 test <- CTIS_micro[ind == 2,]
 model_1 <- glm(worried ~ E3 + E4 + E2 + V11 + E8 ,family=binomial(link='logit'), data=train)
+model_1.1 <- glm(worried ~ factor(E3 , ordered = FALSE ) + factor(E4 , ordered = FALSE ) + 
+                   factor(E2 , ordered = FALSE ) + factor(V11 , ordered = FALSE ) + factor(E8 , ordered = FALSE ), 
+                 family=binomial(link='logit'), data=CTIS_micro)
+summary(model_1.1)
 model_2 <- glm(worried ~ E3 + E4 + E2 + V11 ,family=binomial(link='logit'), data=train)
-model_3 <- glm(D1 ~ E4 + E8 + E3 + D7a ,family=binomial(link='logit'), data=train)
+model_3 <- glm(worried ~ E4 + E8 + E3 + D7a ,family=binomial(link='logit'), data=train)
+model_4 <- glm(worried ~ E4 + E8 + E3 + D7a ,family=binomial(link='logit'), data=CTIS_micro)
+model_5 <- glm(worried ~ factor(E4 , ordered = FALSE ) + factor(E8 , ordered = FALSE ) + factor(E3 , ordered = FALSE ) +
+                 factor(D7a , ordered = FALSE ) ,family=binomial(link='logit'), data=CTIS_micro)
+summary(model_4)
+summary(model_5)
 ```
 
 ```{r}
@@ -365,5 +375,14 @@ summary(boost_micro)
 # Doesn't run
 ord_log_reg_model <- polr(D1 ~ E4 + E8 + E3 + D7a, data = CTIS_micro, Hess = TRUE)
 summary(boost_micro)
+```
+
+# Effect plots for model
+```{r}
+effects::allEffects(model_5, )
+
+termplot(model_5, 
+         se = TRUE, partial.resid = TRUE,  #show CIs and partial residuals
+         col.res = rgb(0, 0, 0, .1), cex = .2) #small semi-transparent dots
 ```
 
