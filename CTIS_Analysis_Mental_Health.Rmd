@@ -31,6 +31,8 @@ library(lubridate)
 library(lares)
 library(highcharter)
 library(dygraphs)
+library(GGally)
+
 
 ```
 
@@ -863,11 +865,11 @@ m
 ```{r}
 ## weekly correlation, continent level
 data_CTIS_policy$week <- floor_date(data_CTIS_policy$data.survey_date, "1 week")
-week_cor <- data_CTIS_policy %>% group_by(week, continent) %>% summarise(correlation = cor(anxious_7d, depressed_7d))
+week_cor <- data_CTIS_policy %>% drop_na() %>% group_by(week, continent) %>% summarise(correlation = cor(anxious_7d, depressed_7d))
 # plot
 ggplot(week_cor, aes(x = week, y = correlation))+ facet_wrap(~ continent, ncol = 2) + geom_line() +
   theme(axis.text = element_text(size = 8))
-ggsave("weekly_correlation_anxious_dep_continent.png", width = 12, height = 9)
+ggsave("plots/Elisa/weekly_correlation_anxious_dep_continent.png", width = 12, height = 9)
 ```
 
 
@@ -908,11 +910,10 @@ w_ukraine
 
 ```{r Correlation}
 ## correlation with more plot types
-library(GGally)
 res <- data_CTIS %>% select(anxious_7d, depressed_7d, worried_become_ill, 
                             finance, food_security) %>% drop_na()
 ggpairs(res) 
-ggsave("correlation_policy_data.png", width = 12, height = 9)
+ggsave("plots/Elisa/correlation_policy_data.png", width = 12, height = 9)
 
 ## correlation of each variable as a square
 data_CTIS_map_ohnegeom <- st_set_geometry(data_CTIS_map, NULL)

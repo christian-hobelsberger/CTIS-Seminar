@@ -352,7 +352,8 @@ model_full <- lm(formula = anxious_7d ~ finance + food_security +
 summary(model_full)
 
 ## graphische visualisierung - dichtekurven 
-ggplot(data = gather(data_CTIS, variable, value, anxious_7d, finance:worried_become_ill),
+ggplot(data = gather(data_CTIS, variable, value, anxious_7d, 
+                     finance:worried_become_ill),
 mapping = aes(x = value)) +
 geom_density(aes()) +
 facet_wrap(facets = ~variable, scales = "free")
@@ -369,7 +370,8 @@ ggplot(data = data_CTIS, mapping = aes(y = anxious_7d, x = food_security)) +
 geom_smooth(method = "lm") 
 
 ## anxious and finance
-ggplot(data = data_CTIS, mapping = aes(y = anxious_7d, x = worried_become_ill)) +  
+ggplot(data = data_CTIS, mapping = aes(y = anxious_7d,
+                                       x = worried_become_ill)) +  
   geom_point(alpha = 0.1) +
 geom_smooth(method = "lm") 
 
@@ -402,7 +404,7 @@ decreasing = TRUE)[2] |
 anxious_7d >= sort(anxious_7d,
 decreasing=TRUE)[2],
 yes = as.character(data.country), no = "")),
-hjust = 1, vjust = 1, size = 3)
+hjust = 1, vjust = 1, size = 3) + geom_smooth()
 gg_streu
 
 # transformed - log10
@@ -503,9 +505,9 @@ lambda_lasso
 y_train <- set_train$anxious_7d
 predict_train <- matrix(data = 0, nrow = nrow(set_train), ncol = 3)
 
-## doesn't compile
-predict_train[, 1] <- predict(object = model_unpenalized,
-newdata = set_train[, -(p + 1)])
+# doesn't compile
+# predict_train[, 1] <- predict(object = model_unpenalized,
+# newdata = set_train[, -(p + 1)])
 
 # it compiles
 predict_train[, 2] <- predict.glmnet(object = model_ridge,
@@ -532,7 +534,10 @@ set_test <- set_test %>% drop_na()
 
 y_test <- set_test$anxious_7d
 predict_test <- matrix(data = 0, nrow = nrow(set_test), ncol = 3)
-predict_test[, 1] <- predict(object = model_unpenalized, newdata = set_test[, -(p+1)])
+ 
+# does not compile
+# predict_test[, 1] <- predict(object = model_unpenalized, newdata = set_test[, -(p+1)]) 
+
 predict_test[, 2] <- predict.glmnet(object = model_ridge,
 newx = data.matrix(set_test[, -(p+1)]),
 s = lambda_ridge)
@@ -567,6 +572,136 @@ title(main = "Ridge", line = 3)
 plot_glmnet(x = model_lasso, label = TRUE, xvar = "lambda")
 title(main = "LASSO", line = 3)
 ```
+
+
+```{r Regularisierung with policy data}
+# Model with regularisierung - policy data
+# only metric variables
+## training (80%) und testdatensatz (20%)
+
+data_ctis_policy_model <- data_CTIS_policy %>% dplyr::select(anxious_7d, depressed_7d, finance,  food_security, worried_become_ill, retail_and_recreation, 
+                     grocery_and_pharmacy, residential, transit_stations, 
+                     parks, workplaces)
+
+n_policy <- nrow(data_ctis_policy_model)
+n_policy
+p_policy <- ncol(data_ctis_policy_model) - 1
+p_policy
+
+set.seed(123)
+ind_train_policy <- sample(x = 1:n, size = ceiling(0.8 * n))
+set_train_policy <- data_ctis_policy_model[ind_train_policy,] ## dataset
+ind_test_policy <- setdiff(x = 1:n, ind_train_policy)
+set_test_policy <- data_ctis_policy_model[ind_test_policy, ] ## dataset
+
+## remove nas in set_train
+set_train_policy <- set_train_policy %>% drop_na()
+
+## unpenalized model: everything significant
+model_unpenalized_policy <- lm(formula = anxious_7d ~ finance + food_security +
+                   worried_become_ill + retail_and_recreation +
+                     grocery_and_pharmacy + residential + transit_stations + 
+                     parks + workplaces, data = set_train_policy)
+
+summary(model_unpenalized_policy)
+
+# Ridge-Regularisierung:
+model_ridge_policy <- glmnet(x = as.matrix(set_train_policy[, -(p_policy + 1)]), y = set_train_policy$anxious_7d,
+alpha = 0)
+summary(model_ridge_policy)
+
+
+# LASSO-Regularisierung:
+model_lasso_policy <- glmnet(x = as.matrix(set_train_policy[, -(p_policy + 1)]), y = set_train_policy$anxious_7d,
+alpha = 1)
+summary(model_lasso_policy)
+
+# Best λ:
+lambda_ridge_policy <- cv.glmnet(x = data.matrix(set_train_policy[, -(p_policy + 1)]),
+y = set_train_policy$anxious_7d, alpha = 0)$lambda.min
+
+lambda_ridge_policy
+
+lambda_lasso_policy <- cv.glmnet(x = data.matrix(set_train_policy[, -(p_policy + 1)]), y = set_train_policy$anxious_7d, alpha = 1)$lambda.min
+
+lambda_lasso_policy
+
+# Anpassung der Modelle an Trainingsdaten:
+y_train_policy <- set_train_policy$anxious_7d
+predict_train_policy <- matrix(data = 0, nrow = nrow(set_train_policy), ncol = 3)
+
+# doesn't compile
+# predict_train_policy[, 1] <- predict(object = model_unpenalized,
+# newdata = set_train_policy[, -(p_policy + 1)])
+
+# it compiles
+predict_train_policy[, 2] <- predict.glmnet(object = model_ridge_policy,
+newx = data.matrix(set_train_policy[, -(p_policy+1)]),
+s = lambda_ridge_policy)
+
+predict_train_policy[, 3] <- predict.glmnet(object = model_lasso_policy,
+newx = data.matrix(set_train_policy[, -(p_policy+1)]),
+s = lambda_lasso_policy)
+
+MSE_train_policy <- rep(x = 0, length.out = 3)
+
+for (i in 1:3) {
+MSE_train_policy[i] = mean((y_train_policy - predict_train_policy[, i])^2)
+}
+MSE_train_policy
+
+format(MSE_train_policy, scientific = FALSE)
+# model Lasso best one (lowest MSE)
+
+## Prädiktion auf Testdaten:
+# drop nas in set_test
+set_test_policy <- set_test_policy %>% drop_na()
+
+y_test_policy <- set_test_policy$anxious_7d
+predict_test_policy <- matrix(data = 0, nrow = nrow(set_test_policy), ncol = 3)
+ 
+# does not compile
+# predict_test_policy[, 1] <- predict(object = model_unpenalized, newdata = set_test_policy[, -(p_policy+1)]) 
+
+predict_test_policy[, 2] <- predict.glmnet(object = model_ridge_policy,
+newx = data.matrix(set_test_policy[, -(p_policy+1)]),
+s = lambda_ridge_policy)
+predict_test_policy[, 3] <- predict.glmnet(object = model_lasso_policy,
+newx = data.matrix(set_test_policy[, -(p_policy+1)]), s = lambda_lasso_policy)
+MSE_test_policy <- rep(x = 0, length.out = 3)
+for (i in 1:3) {
+MSE_test_policy[i] = mean((y_test_policy - predict_test_policy[, i])^2)
+}
+MSE_test_policy
+
+format(MSE_test_policy, scientific = FALSE)
+## lasso best one
+
+## Model with lasso regularisierung (alle Variablen ausser anxious nicht 
+# in das Modell einbezogen) -> nochmal überprüfen
+coef_lasso_policy <- model_lasso_policy$beta[, which(model_lasso_policy$lambda == lambda_lasso_policy)]
+coef_lasso_policy
+
+# Stepwise Selection per AIC
+coef_AIC_policy <- stepAIC(object = model_unpenalized_policy,
+scope = list(upper = ~ ., lower = ~ 1), direction = "both")
+
+coef_AIC_policy
+
+# Visualization Coefficients
+par(mfrow = c(2, 1))
+# Ridge-Regularisierung:
+plot_glmnet(x = model_ridge_policy, label = TRUE, xvar = "lambda")
+title(main = "Ridge", line = 3)
+# LASSO-Regularisierung:
+plot_glmnet(x = model_lasso_policy, label = TRUE, xvar = "lambda")
+title(main = "LASSO", line = 3)
+par(mfrow = c(1,1))
+```
+
+
+
+
 ```{r Boosting}
 
 set.seed(123)
@@ -581,6 +716,21 @@ par(mar = c(5, 5, 4, 6))
 plot(x = model_boosting_default, main = "Coefficients path")
 ```
 
+```{r Boosting data policy}
+
+set.seed(123)
+
+model_boosting_default_policy <- glmboost(anxious_7d ~ finance + food_security +
+                   worried_become_ill + retail_and_recreation +
+                     grocery_and_pharmacy + residential + transit_stations + 
+                     parks + workplaces, data = data_CTIS_policy, control = 
+                     boost_control(mstop = 100, nu = 0.1))
+summary(model_boosting_default_policy)
+
+# plot
+par(mar = c(5, 5, 4, 6))
+plot(x = model_boosting_default_policy, main = "Coefficients path")
+```
 
 
 ```{r Lineares gemischtes Modell}
@@ -621,7 +771,7 @@ standard_abweichung <- 0.02805
 
 residual_variance <- 0.0003301
 ICC <- standard_abweichung^2 / (standard_abweichung^2 + residual_variance) 
-ICC  
+ICC 
 
 ## 0.70 -> Anteil der durch den zufälligen Intercept erklärten Streuung, 
 # die nicht durch die festen Effekte erklärt wird, liegt bei 70%. 
@@ -738,11 +888,11 @@ geom_line()
 
 
 # try 20th grade
-# 10th grade
 model_pol20 <- lm(formula = anxious_7d ~ tag + I(tag^2) + I(tag^3) + 
                     I(tag^4) + I(tag^5) + I(tag^6) + I(tag^7) + I(tag^8) + 
                     I(tag^9) + I(tag^10) + I(tag^11) + I(tag^12) + 
-                    I(tag^13) + I(tag^14) + I(tag^15) + I(tag^16) + I(tag^17) + 
+                    I(tag^13) + I(tag^14) + I(tag^15) + 
+                    I(tag^16) + I(tag^17) + 
                     I(tag^18) + I(tag^19) + I(tag^20),
 data = data_ctis_wochentag)
 summary(model_pol20)
@@ -755,12 +905,37 @@ values_to = "anxious_7d")
 ggplot(data = plot_data_20, mapping = aes(x = data.survey_date, y = anxious_7d, 
                                        col = model)) +
 geom_line()
+
+# try 40th grade
+model_pol40 <- lm(formula = anxious_7d ~ tag + I(tag^2) + I(tag^3) + 
+                    I(tag^4) + I(tag^5) + I(tag^6) + I(tag^7) + I(tag^8) + 
+                    I(tag^9) + I(tag^10) + I(tag^11) + I(tag^12) + 
+                    I(tag^13) + I(tag^14) + I(tag^15) + 
+                    I(tag^16) + I(tag^17) + 
+                    I(tag^18) + I(tag^19) + I(tag^20) + I(tag^21) + I(tag^22) + 
+                    I(tag^23) +  I(tag^24) + I(tag^25) + I(tag^26) + 
+                    I(tag^27) + I(tag^28) + 
+                    I(tag^29) + I(tag^30) + I(tag^31) + I(tag^32) + 
+                    I(tag^33) + I(tag^34) + I(tag^35) + 
+                    I(tag^36) + I(tag^37) + 
+                    I(tag^38) + I(tag^39) + I(tag^40),
+data = data_ctis_wochentag)
+summary(model_pol40)
+
+# plot 40th grade
+data_ctis_wochentag$fitted_polynom40 <- model_pol40$fitted.values
+plot_data_40 <- data_ctis_wochentag %>%
+pivot_longer(cols = c("anxious_7d", "fitted_polynom40"), names_to = "model",
+values_to = "anxious_7d")
+ggplot(data = plot_data_40, mapping = aes(x = data.survey_date, y = anxious_7d, 
+                                       col = model)) +
+geom_line()
 ```
 
 ```{r Splines}
 
 # B-Spline-Modelle:
-# Zur besseren Ubersicht in einem Plot nur 500,600, 700,800 Knoten ¨
+# Zur besseren Ubersicht in einem Plot nur 1000,1500,2000,800 Knoten ¨
 ms <- c(1000,1500,2000,800)
 #Initialisieren
 bs_data <- data_ctis_wochentag[,c("anxious_7d","data.survey_date")]
