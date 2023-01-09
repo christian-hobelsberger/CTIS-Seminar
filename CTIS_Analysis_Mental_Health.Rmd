@@ -288,15 +288,15 @@ data_CTIS_policy_large <- data_CTIS_country_subset_large %>%
 
 ```{r Check for hard restricting countries}
 hard_countries <- unique(data_CTIS_policy_large %>% 
-  filter(stay_home_requirements %in% 2:3 & school_closures %in% 2:3) %>% select(data.country))[["data.country"]]
+  filter(stay_home_requirements %in% 2:3 & school_closures %in% 2:3) %>% dplyr::select(data.country))[["data.country"]]
 data_CTIS_policy_large %>% 
-  filter(stay_home_requirements %in% 3) %>% select(data.country) %>%  unique()
+  filter(stay_home_requirements %in% 3) %>% dplyr::select(data.country) %>%  unique()
 ```
 
 ## Anxiety
 
 ```{r Anxiety over time for country selection}
-anx_hard_countries <- data_CTIS_policy_large %>% filter(data.country %in% hard_countries) %>% select(anxious_7d)
+anx_hard_countries <- data_CTIS_policy_large %>% filter(data.country %in% hard_countries) %>% dplyr::select(anxious_7d)
 
 data_CTIS_policy_large %>% 
   filter(stay_home_requirements %in% 2:3 & school_closures %in% 2:3) %>% ggplot(aes(x= data.survey_date, y = anxious_7d, color = data.country)) + 
@@ -311,9 +311,9 @@ data_CTIS_policy_large %>%
 
 ```{r school closure in 3}
 hard_countries <- unique(data_CTIS_policy_large %>% 
-  filter(school_closures %in% 3) %>% select(data.country))[["data.country"]]
+  filter(school_closures %in% 3) %>% dplyr::select(data.country))[["data.country"]]
 
-anx_hard_countries <- data_CTIS_policy_large %>% filter(data.country %in% hard_countries) %>% select(anxious_7d)
+anx_hard_countries <- data_CTIS_policy_large %>% filter(data.country %in% hard_countries) %>% dplyr::select(anxious_7d)
 
 data_CTIS_policy_large %>% 
   filter(school_closures %in% 3) %>% ggplot(aes(x= data.survey_date, y = anxious_7d, color = data.country)) + 
@@ -327,9 +327,9 @@ data_CTIS_policy_large %>%
 
 ```{r Depression over time by country}
 hard_countries <- unique(data_CTIS_policy_large %>% 
-  filter(stay_home_requirements %in% 2:3 & school_closures %in% 2:3) %>% select(data.country))[["data.country"]]
+  filter(stay_home_requirements %in% 2:3 & school_closures %in% 2:3) %>% dplyr::select(data.country))[["data.country"]]
 
-anx_hard_countries <- data_CTIS_policy_large %>% filter(data.country %in% hard_countries) %>% select(depressed_7d)
+anx_hard_countries <- data_CTIS_policy_large %>% filter(data.country %in% hard_countries) %>% dplyr::select(depressed_7d)
 
 data_CTIS_policy_large %>% 
   filter(stay_home_requirements %in% 2:3 & school_closures %in% 2:3) %>% ggplot(aes(x= data.survey_date, y = depressed_7d, color = data.country)) + 
@@ -342,7 +342,7 @@ data_CTIS_policy_large %>%
 ## Correlation Matrix
 
 ```{r corrplot for subset}
-numeric_data <- data_CTIS_policy_large %>% select(anxious_7d, depressed_7d, finance, food_security, worried_become_ill, parks, workplaces, residential, transit_stations)
+numeric_data <- data_CTIS_policy_large %>% dplyr::select(anxious_7d, depressed_7d, finance, food_security, worried_become_ill, parks, workplaces, residential, transit_stations)
 cormat <- cor(numeric_data, use = "complete.obs")
 
 corrplot(cormat, method = "color")
@@ -403,7 +403,7 @@ data_CTIS_policy_large %>%
 # Using complete data set
 
 ```{r}
-numeric_data <- data_CTIS_policy %>% select(anxious_7d, depressed_7d, finance, food_security, worried_become_ill, parks, workplaces, residential, transit_stations)
+numeric_data <- data_CTIS_policy %>% dplyr::select(anxious_7d, depressed_7d, finance, food_security, worried_become_ill, parks, workplaces, residential, transit_stations)
 cormat <- cor(numeric_data, use = "complete.obs")
 
 corrplot(cormat, method = "color")
@@ -449,7 +449,7 @@ data_CTIS_policy %>%
 ```
 
 ```{r}
-data_CTIS_policy %>% filter(continent %in% "Europe") %>% filter(data.survey_date %in% as.Date("2022-02-27")) %>% select(anxious_7d, data.country) %>% arrange(desc(anxious_7d))
+data_CTIS_policy %>% filter(continent %in% "Europe") %>% filter(data.survey_date %in% as.Date("2022-02-27")) %>% dplyr::select(anxious_7d, data.country) %>% arrange(desc(anxious_7d))
 ```
 
 ```{r Anxiety continent level}
@@ -499,7 +499,7 @@ mode <- "plot"
 
 
 mapdata <- data_CTIS_map %>% 
-  select(continent, variable, geometry, data.country, data.iso_code, data.survey_date) %>% 
+  dplyr::select(continent, variable, geometry, data.country, data.iso_code, data.survey_date) %>% 
   filter(data.survey_date %in% as.Date(survey_date))
 
 # If we filter for specific data we lose geometries for countries with no obs at that data therefore we need to add the geo data + NA for survey data
@@ -522,7 +522,7 @@ tm_shape(mapdata)+
 ```{r}
 plot_global_map <- function(data, variable, survey_date, mode = "plot", ...){
   mapdata <- data %>% 
-  select(continent, variable, geometry, data.country, data.iso_code, data.survey_date, school_closures, stay_home_requirements) %>% 
+  dplyr::select(continent, variable, geometry, data.country, data.iso_code, data.survey_date, school_closures, stay_home_requirements) %>% 
   filter(data.survey_date %in% as.Date(survey_date))
 # If we filter for specific data we lose geometries for countries with no obs at that data therefore   we need to add the geo data + NA for survey data
   missing_countries <- setdiff(world$data.country, mapdata$data.country)
@@ -543,7 +543,7 @@ plot_global_map <- function(data, variable, survey_date, mode = "plot", ...){
 ```{r}
 plot_continent_map <- function(data, variable, area, survey_date, mode = "plot", ...){
   mapdata <- data %>% 
-  select(continent, variable, geometry, data.country, data.iso_code, data.survey_date, school_closures, stay_home_requirements) %>% 
+  dplyr::select(continent, variable, geometry, data.country, data.iso_code, data.survey_date, school_closures, stay_home_requirements) %>% 
   filter(data.survey_date %in% as.Date(survey_date)) %>% 
   filter(continent %in% area)
 
@@ -1028,5 +1028,55 @@ mapCountryData(joinData2, nameColumnToPlot = "cor_fin_food", catMethod = "FixedW
 ```
 
 
+## Code from Max -> using it for correlation interactive plots (Elisa) ## 
 
+# plot_data_map
+```{r}
+
+plot_global_map <- function(data, variable, mode = "plot", ...){
+  mapdata <- data_cor_fin_food %>% 
+  dplyr::select(variable, geometry, data.country, data.iso_code) 
+# If we filter for specific data we lose geometries for countries with no obs at that data therefore   we need to add the geo data + NA for survey data
+  missing_countries <- setdiff(world$data.country, mapdata$data.country)
+  missing_data <- world %>% filter(data.country %in% missing_countries)
+  missing_columns <- setdiff(colnames(mapdata), colnames(missing_data))
+  for (column in 1:length(missing_columns)) {
+    missing_data[missing_columns[column]] <- NA
+  }
+  mapdata <- rbind(mapdata, missing_data)
+  tmap_mode(mode)
+  tm_shape(mapdata)+
+    tm_fill(variable, ...)+
+    tm_borders()
+}
+```
+
+
+```{r}
+plot_continent_map <- function(data, variable, area, survey_date, mode = "plot", ...){
+  mapdata <- data_cor_fin_food %>% 
+  dplyr::select(variable, geometry, data.country, data.iso_code) 
+
+  tmap_mode(mode)
+  tm_shape(mapdata)+
+    tm_borders()+
+    tm_polygons(variable, ...)
+}
+```
+
+```{r}
+plot_global_map(data_cor_fin_food, variable = "cor_fin_food", mode = "view", id = "data.country", popup.vars = c("Correlation between finance and food security:" = "cor_fin_food"))
+
+plot_global_map(data_cor_fin_food, variable = "cor_fin_food", mode = "plot", 
+                title ='Finance and food security correlation')+
+   tm_layout(legend.position = c("left", "bottom"), 
+            main.title= 'Correlation between finance and food security',
+            legend.outside = TRUE,
+            main.title.position = c('center', 'top'))
+
+
+plot_continent_map(data_cor_fin_food, variable = "cor_fin_food",
+                   area = "Europe", mode = "view", id = "data.country", 
+                   popup.vars = c("Correlation between finance and food security:" = "cor_fin_food"))
+```
 
