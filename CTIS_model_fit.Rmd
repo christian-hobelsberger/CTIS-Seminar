@@ -31,11 +31,6 @@ CTIS_macro <- readRDS("~/CTIS-Seminar/data/data_CTIS_policy.RDS")
 ```
 
 ```{r}
-CTIS_micro <- readRDS("~/CTIS-Seminar/data/protected_data/CTIS_microdata_cleanV4.RDS")
-```
-
-
-```{r}
 head(CTIS_macro)
 str(CTIS_macro)
 ```
@@ -307,15 +302,13 @@ ind <- sample(2, nrow(CTIS_micro), replace = T, prob = c(0.5, 0.5))
 train <- CTIS_micro[ind == 1,]
 test <- CTIS_micro[ind == 2,]
 model_1 <- glm(worried ~ E3 + E4 + E2 + V11 + E8 ,family=binomial(link='logit'), data=train)
-model_1.1 <- glm(worried ~ factor(E3 , ordered = FALSE ) + factor(E4 , ordered = FALSE ) + 
-                   factor(E2 , ordered = FALSE ) + factor(V11 , ordered = FALSE ) + factor(E8 , ordered = FALSE ), 
-                 family=binomial(link='logit'), data=CTIS_micro)
+model_2 <- glm(worried ~ E3 + E4 + E2 + V11 ,family = binomial(link='logit'), data=train)
+model_3 <- glm(worried ~ E4 + E8 + E3 + D7a ,family = binomial(link='logit'), data=train)
+```
+
+```{r}
+summary(model_1)
 summary(model_1.1)
-model_2 <- glm(worried ~ E3 + E4 + E2 + V11 ,family=binomial(link='logit'), data=train)
-model_3 <- glm(worried ~ E4 + E8 + E3 + D7a ,family=binomial(link='logit'), data=train)
-model_4 <- glm(worried ~ E4 + E8 + E3 + D7a ,family=binomial(link='logit'), data=CTIS_micro)
-model_5 <- glm(worried ~ factor(E4 , ordered = FALSE ) + factor(E8 , ordered = FALSE ) + factor(E3 , ordered = FALSE ) +
-                 factor(D7a , ordered = FALSE ) ,family=binomial(link='logit'), data=CTIS_micro)
 summary(model_4)
 summary(model_5)
 ```
@@ -324,8 +317,10 @@ summary(model_5)
 test <- na.omit(test)
 
 fitted.results_model1 <- predict(model_1, newdata= test[c("E3", "E4", "E2", "V11", "E8", "worried", "D7a")], type='response')
+fitted.results_model1.1 <- predict(model_1.1, newdata= test[c("E3", "E4", "E2", "V11", "E8", "worried", "D7a")], type='response')
 fitted.results_model2 <- predict(model_2, newdata= test[c("E3", "E4", "E2", "V11", "E8", "worried", "D7a")], type='response')
 fitted.results_model3 <- predict(model_3, newdata= test[c("E3", "E4", "E2", "V11", "E8", "worried", "D7a")], type='response')
+
 
 ```
 # Model 1 diagnostics
@@ -334,6 +329,13 @@ fitted.results_model1 <- ifelse(fitted.results_model1 > 0.5,1,0)
 misClasificError <- mean(as.logical(fitted.results_model1) != test$worried)
 print(paste('Accuracy',1-misClasificError))
 F1_Score(test$worried, as.logical(fitted.results_model1))
+```
+# Model 1.1 diagnostics
+```{r}
+fitted.results_model1.1 <- ifelse(fitted.results_model1.1 > 0.5,1,0)
+misClasificError <- mean(as.logical(fitted.results_model1.1) != test$worried)
+print(paste('Accuracy',1-misClasificError))
+F1_Score(test$worried, as.logical(fitted.results_model1.1))
 ```
 # Model 2 diagnostics
 ```{r}
