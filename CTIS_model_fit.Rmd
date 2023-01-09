@@ -302,6 +302,7 @@ ind <- sample(2, nrow(CTIS_micro), replace = T, prob = c(0.5, 0.5))
 train <- CTIS_micro[ind == 1,]
 test <- CTIS_micro[ind == 2,]
 model_1 <- glm(worried ~ E3 + E4 + E2 + V11 + E8 ,family=binomial(link='logit'), data=train)
+<<<<<<< HEAD
 model_2 <- glm(worried ~ E3 + E4 + E2 + V11 ,family = binomial(link='logit'), data=train)
 model_3 <- glm(worried ~ E4 + E8 + E3 + D7a ,family = binomial(link='logit'), data=train)
 ```
@@ -311,6 +312,11 @@ summary(model_1)
 summary(model_1.1)
 summary(model_4)
 summary(model_5)
+=======
+model_2 <- glm(worried ~ E3 + E4 + E2 + V11 ,family=binomial(link='logit'), data=train)
+model_3 <- glm(worried ~ E4 + E8 + E3 + D7a ,family=binomial(link='logit'), data=train)
+
+>>>>>>> c44fc8c9b9f43ac307b701875be41ffeee9fb904
 ```
 
 ```{r}
