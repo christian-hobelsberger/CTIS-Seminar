@@ -20,6 +20,7 @@ library(effects)
 library(arsenal)
 library(mboost)
 library(MASS)
+library(effects)
 ```
 
 ```{r include=FALSE}
@@ -338,5 +339,14 @@ summary(boost_micro)
 # Doesn't run
 ord_log_reg_model <- polr(D1 ~ E4 + E8 + E3 + D7a, data = CTIS_micro, Hess = TRUE)
 summary(boost_micro)
+```
+
+# Effect plots for model
+```{r}
+effects::allEffects(model_5, )
+
+termplot(model_5, 
+         se = TRUE, partial.resid = TRUE,  #show CIs and partial residuals
+         col.res = rgb(0, 0, 0, .1), cex = .2) #small semi-transparent dots
 ```
 
