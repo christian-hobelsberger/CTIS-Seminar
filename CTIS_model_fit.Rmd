@@ -30,7 +30,7 @@ CTIS_macro <- readRDS("~/CTIS-Seminar/data/data_CTIS_policy.RDS")
 ```
 
 ```{r}
-CTIS_micro <- readRDS("~/CTIS-Seminar/data/protected_data/CTIS_microdata_cleanV4.RDS")
+CTIS_micro <- readRDS("data/protected_data/CTIS_microdata_cleanV4.RDS")
 ```
 
 

@@ -203,8 +203,8 @@ write_csv(x = CTIS_microdata_clean, file = "data/protected_data/CTIS_microdata_c
 CTIS_microdata <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
 
 for (col_name in names(CTIS_microdata)) {
-  if (is.ordered(CTIS_micro[[col_name]])) {
-    CTIS_micro[[col_name]] <- factor(CTIS_micro[[col_name]], ordered = FALSE )
+  if (is.ordered(CTIS_microdata[[col_name]])) {
+    CTIS_microdata[[col_name]] <- factor(CTIS_microdata[[col_name]], ordered = FALSE )
   }
 }
 
