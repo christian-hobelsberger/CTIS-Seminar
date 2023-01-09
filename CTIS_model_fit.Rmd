@@ -22,6 +22,7 @@ library(arsenal)
 library(mboost)
 library(MASS)
 library(effects)
+library(sjPlot)
 ```
 
 ```{r include=FALSE}
@@ -31,7 +32,6 @@ CTIS_macro <- readRDS("~/CTIS-Seminar/data/data_CTIS_policy.RDS")
 ```
 
 ```{r}
-
 CTIS_micro <- readRDS("data/protected_data/CTIS_microdata_cleanV4.RDS")
 ```
 
@@ -313,15 +313,6 @@ model_3 <- glm(worried ~ E4 + E8 + E3 + D7a ,family = binomial(link='logit'), da
 ```
 
 ```{r}
-summary(model_1)
-summary(model_1.1)
-summary(model_4)
-summary(model_5)
-model_2 <- glm(worried ~ E3 + E4 + E2 + V11 ,family=binomial(link='logit'), data=train)
-model_3 <- glm(worried ~ E4 + E8 + E3 + D7a ,family=binomial(link='logit'), data=train)
-```
-
-```{r}
 test <- na.omit(test)
 
 fitted.results_model1 <- predict(model_1, newdata= test[c("E3", "E4", "E2", "V11", "E8", "worried", "D7a")], type='response')
@@ -358,6 +349,12 @@ fitted.results_model3 <- ifelse(fitted.results_model3 > 0.5,1,0)
 misClasificError <- mean(as.logical(fitted.results_model3) != test$worried)
 print(paste('Accuracy',1-misClasificError))
 F1_Score(test$worried, as.logical(fitted.results_model3))
+```
+
+# Forest Plot
+```{r}
+plot_model(model_1, ci_method = "wald")
+ggsave("Plots/Chris/models/forestplot_model1", width = 12, height = 9)
 ```
 
 
