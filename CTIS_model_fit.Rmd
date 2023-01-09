@@ -354,7 +354,7 @@ F1_Score(test$worried, as.logical(fitted.results_model3))
 # Forest Plot
 ```{r}
 plot_model(model_1, ci_method = "wald")
-ggsave("Plots/Chris/models/forestplot_model1", width = 12, height = 9)
+ggsave("Plots/Chris/models/forestplot_model1.png", width = 12, height = 9)
 ```
 
 
