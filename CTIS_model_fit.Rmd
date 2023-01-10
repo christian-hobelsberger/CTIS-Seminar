@@ -309,21 +309,20 @@ plot(best_sub_model_continent)
 
 # Logistic regression
 ```{r}
-set.seed(1234)
+set.seed(2507)
 CTIS_micro$worried <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
-ind <- sample(2, nrow(CTIS_micro), replace = T, prob = c(0.5, 0.5))
-train <- CTIS_micro[ind == 1,]
-test <- CTIS_micro[ind == 2,]
+CTIS_micro$V11[CTIS_micro$E3 %in% "Male" & is.na(CTIS_micro$V11)] <- "No"
+split1<- sample(c(rep(0, 0.5 * nrow(CTIS_micro)), rep(1, 0.5 * nrow(CTIS_micro))))
+train <- CTIS_micro[split1 == 0, ]
+test <- CTIS_micro[split1 == 1,]
 model_1 <- glm(worried ~ E3 + E4 + E2 + V11 + E8 ,family=binomial(link='logit'), data=train)
-model_2 <- glm(worried ~ E3 + E4 + E2 + V11 ,family = binomial(link='logit'), data=train)
+model_2 <- glm(worried ~ E3 + E4 + E2 + V11 + E8 ,family = binomial(link='logit'), data=train)
 model_3 <- glm(worried ~ E4 + E8 + E3 + D7a ,family = binomial(link='logit'), data=train)
 ```
 
 ```{r}
 test <- na.omit(test)
-
 fitted.results_model1 <- predict(model_1, newdata= test[c("E3", "E4", "E2", "V11", "E8", "worried", "D7a")], type='response')
-fitted.results_model1.1 <- predict(model_1.1, newdata= test[c("E3", "E4", "E2", "V11", "E8", "worried", "D7a")], type='response')
 fitted.results_model2 <- predict(model_2, newdata= test[c("E3", "E4", "E2", "V11", "E8", "worried", "D7a")], type='response')
 fitted.results_model3 <- predict(model_3, newdata= test[c("E3", "E4", "E2", "V11", "E8", "worried", "D7a")], type='response')
 
@@ -332,17 +331,11 @@ fitted.results_model3 <- predict(model_3, newdata= test[c("E3", "E4", "E2", "V11
 # Model 1 diagnostics
 ```{r}
 fitted.results_model1 <- ifelse(fitted.results_model1 > 0.5,1,0)
-misClasificError <- mean(as.logical(fitted.results_model1) != test$worried)
+misClasificError <- mean(as.logical(fitted.results_model1) != na.omit(test$worried))
 print(paste('Accuracy',1-misClasificError))
 F1_Score(test$worried, as.logical(fitted.results_model1))
 ```
-# Model 1.1 diagnostics
-```{r}
-fitted.results_model1.1 <- ifelse(fitted.results_model1.1 > 0.5,1,0)
-misClasificError <- mean(as.logical(fitted.results_model1.1) != test$worried)
-print(paste('Accuracy',1-misClasificError))
-F1_Score(test$worried, as.logical(fitted.results_model1.1))
-```
+
 # Model 2 diagnostics
 ```{r}
 fitted.results_model2 <- ifelse(fitted.results_model2 > 0.5,1,0)
