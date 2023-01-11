@@ -207,7 +207,12 @@ for (col_name in names(CTIS_microdata)) {
     CTIS_microdata[[col_name]] <- factor(CTIS_microdata[[col_name]], ordered = FALSE )
   }
 }
+# Map country data 
+country_map <- read.csv("data/protected_data/country_map.csv")
+CTIS_microdata$A2_2_1 <- as.numeric(CTIS_microdata$A2_2_1)
+CTIS_microdata_v5 <- left_join(CTIS_microdata, country_map, by = c("A2_2_1" = "country_region_numeric"))
 
-saveRDS(object = CTIS_microdata, file = "data/protected_data/CTIS_microdata_cleanV4.RDS")
+
+saveRDS(object = CTIS_microdata, file = "data/protected_data/CTIS_microdata_cleanV5.RDS")
 ```
 
