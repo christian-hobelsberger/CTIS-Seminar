@@ -326,21 +326,36 @@ train_downsamp <- train %>%
   sample_n(minority_class_size) %>% 
   ungroup()
 ```
+# Young people regression
+```{r}
+CTIS_micro_18_24 <- CTIS_micro %>% filter(E4 %in% c("18-24", "25-34"))
+CTIS_micro_18_24$E5 <- as.numeric(CTIS_micro_18_24$E5)
+CTIS_micro_18_24$E7a <- as.numeric(CTIS_micro_18_24$E7a)
+split2 <- sample <- sample(c(TRUE, FALSE), nrow(CTIS_micro_18_24), replace=TRUE, prob=c(0.7,0.3))
+train_18_24 <- CTIS_micro_18_24[split2, ]
+test_18_24 <- CTIS_micro_18_24[!split2,]
+model_1_18_24 <- glm(depressed ~ E3 + E2 + D4 + D5 + V11 + E8 + E5 + E7a + D7a , family = binomial(link = 'logit'), data = train_18_24)
+
+test_18_24 <- na.omit(test_18_24)
+fitted.results_model1_18_24 <- predict(model_1_18_24, newdata= test_18_24[c("E3", "E4", "E5", "E7a", "E2", "D7a", "V11", "E8", "worried", "D7a", "depressed", "D4", "D5")], type='response')
+
+test_roc <- roc(test_18_24$depressed ~ fitted.results_model1_18_24, plot = TRUE, print.auc = TRUE)
+```
 
 ```{r}
 # E3 = Gender, E4 = Age, E2 = Where do you live, V11 = Pregnant, E8 = Education 
-model_1 <- glm(worried ~ E3 + E4 + E2 + V11 + E8 ,family=binomial(link='logit'), data=train)
-model_1_downsamp <- glm(depressed ~ E3 + E4 + E2 + V11 + E8 + E5 + E7a + D7a + country_agg, family=binomial(link='logit'), data= train_downsamp)
+model_1 <- glm(depressed ~ E3 + E4 + E2 + D4 + D5+ V11 + E8 + E5 + E7a + D7a ,family=binomial(link='logit'), data=train)
+model_1_downsamp <- glm(depressed ~ E3 + E4 + E2 + D4 + D5+ V11 + E8 + E5 + E7a + D7a , family=binomial(link='logit'), data= train_downsamp)
 model_2 <- glm(worried ~ E3 + E4 + E2 + V11 ,family = binomial(link='logit'), data=train)
 model_3 <- glm(worried ~ E4 + E8 + E3 + D7a ,family = binomial(link='logit'), data=train)
 ```
 
 ```{r}
 test <- na.omit(test)
-model_1 <- model_1_downsamp
+#model_1 <- model_1_downsamp
 #fitted.results_model1 <- fitted.results_model1_downsamp
-fitted.results_model1 <- predict(model_1, newdata= test[c("E3", "E4", "E2", "E5", "E7a", "D7a", "V11", "E8", "worried", "D7a", "country_agg", "depressed")], type='response')
-fitted.results_model1_downsamp <- predict(model_1_downsamp, newdata= test[c("E3", "E4", "E2", "V11", "E8", "worried", "D7a", "depressed")], type='response')
+fitted.results_model1 <- predict(model_1, newdata= test[c("E3", "E4", "E2", "E5", "D4", "D5", "V11", "E8", "worried", "D7a", "E7a", "depressed")], type='response')
+fitted.results_model1_downsamp <- predict(model_1_downsamp, newdata= test[c("E3", "E4", "E2", "E5", "D4", "D5", "V11", "E8", "worried", "D7a", "E7a", "depressed")], type='response')
 
 fitted.results_model2 <- predict(model_2, newdata= test[c("E3", "E4", "E2", "V11", "E8", "worried", "D7a")], type='response')
 fitted.results_model3 <- predict(model_3, newdata= test[c("E3", "E4", "E2", "V11", "E8", "worried", "D7a")], type='response')
@@ -349,11 +364,13 @@ fitted.results_model3 <- predict(model_3, newdata= test[c("E3", "E4", "E2", "V11
 
 ```{r}
 library(pROC)
-test_prob <-  predict(model_1_downsamp, newdata = test[c("E3", "E4", "E2", "E5", "E7a", "D7a", "V11", "E8", "worried", "D7a", "country_agg", "depressed")], type = "response")
-test_roc <- roc(test$depressed ~ test_prob, plot = TRUE, print.auc = TRUE)
+test_roc <- roc(test$depressed ~ fitted.results_model1, plot = TRUE, print.auc = TRUE)
+test_roc <- roc(test$depressed ~ fitted.results_model1_downsamp, plot = TRUE, print.auc = TRUE)
+
+coords(test_roc)
 ```
 ```{r}
-fitted.results_model1 <- ifelse(fitted.results_model1 > 0.4,1,0)
+fitted.results_model1 <- ifelse(fitted.results_model1_downsamp > 0.5,1,0)
 misClasificError <- mean(as.logical(fitted.results_model1) != na.omit(test$worried))
 print(paste('Accuracy',1-misClasificError))
 F1_Score(test$worried, as.logical(fitted.results_model1))
@@ -362,9 +379,9 @@ F1_Score(test$worried, as.logical(fitted.results_model1))
 ```{r}
 conf_table <- table(predicted = as.logical(fitted.results_model1), 
                     actual = test$depressed)
-confus_matrix <- caret::confusionMatrix(conf_table)#Huge probelem with specificity
+confus_matrix <- caret::confusionMatrix(conf_table, positive = "TRUE")#Huge probelem with specificity
 confus_matrix
-sensitivity(confus_matrix)
+caret::sensitivity(confus_matrix)
 ```
 # Define Function for Logistic PRediction threshold
 ```{r}
@@ -443,7 +460,7 @@ ggsave("Plots/Chris/models/forestplot_model1.png", width = 12, height = 9)
 # CART
 ```{r}
 library(rpart)
-tree <- rpart::rpart(depressed ~ E3 + E4 + E2 + V11 + E8 + country_agg, data = train_downsamp)
+tree <- rpart::rpart(depressed ~ E3 + E4 + E2 + D4 + D5+ V11 + E8 + E5 + E7a + D7a , data = train_downsamp)
 ```
 ```{r}
 pred = predict(tree, newdata = test[c("E3", "E4", "E2", "E5", "E7a", "D7a", "V11", "E8", "worried", "D7a", "country_agg", "depressed")])
