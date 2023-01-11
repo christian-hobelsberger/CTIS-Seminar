@@ -201,13 +201,16 @@ write_csv(x = CTIS_microdata_clean, file = "data/protected_data/CTIS_microdata_c
 
 # quick fix: Remove order from all factor variables
 # Loading the microdata
-CTIS_microdata <- readRDS("data/protected_data/CTIS_microdata_cleanV4.RDS")
+
+CTIS_microdata <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
+
 
 for (col_name in names(CTIS_microdata)) {
   if (is.ordered(CTIS_microdata[[col_name]])) {
     CTIS_microdata[[col_name]] <- factor(CTIS_microdata[[col_name]], ordered = FALSE )
   }
 }
+
 # Map country data 
 
 
@@ -219,5 +222,6 @@ CTIS_microdata_v5 <- left_join(CTIS_microdata, country_map, by = c("A2_2_2" = "c
 
 
 saveRDS(object = CTIS_microdata_v5, file = "data/protected_data/CTIS_microdata_cleanV5.RDS")
+
 ```
 
