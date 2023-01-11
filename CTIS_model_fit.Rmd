@@ -340,6 +340,17 @@ test_18_24 <- na.omit(test_18_24)
 fitted.results_model1_18_24 <- predict(model_1_18_24, newdata= test_18_24[c("E3", "E4", "E5", "E7a", "E2", "D7a", "V11", "E8", "worried", "D7a", "depressed", "D4", "D5")], type='response')
 
 test_roc <- roc(test_18_24$depressed ~ fitted.results_model1_18_24, plot = TRUE, print.auc = TRUE)
+coords(test_roc) %>% filter(specificity > 0.62 & sensitivity > 0.65)
+
+fitted.results_model1_18_24 <- ifelse(fitted.results_model1_18_24 > 0.106,1,0)
+misClasificError <- mean(as.logical(fitted.results_model1_18_24) != na.omit(test_18_24$worried))
+print(paste('Accuracy',1-misClasificError))
+
+conf_table <- table(predicted = as.logical(fitted.results_model1_18_24), 
+                    actual = test$depressed)
+confus_matrix <- caret::confusionMatrix(conf_table, positive = "TRUE")#Huge probelem with specificity
+confus_matrix
+caret::sensitivity(confus_matrix)
 ```
 
 ```{r}
@@ -360,6 +371,12 @@ fitted.results_model1_downsamp <- predict(model_1_downsamp, newdata= test[c("E3"
 fitted.results_model2 <- predict(model_2, newdata= test[c("E3", "E4", "E2", "V11", "E8", "worried", "D7a")], type='response')
 fitted.results_model3 <- predict(model_3, newdata= test[c("E3", "E4", "E2", "V11", "E8", "worried", "D7a")], type='response')
 ```
+# Important note for the standard model 1 with poor prediction value
+Even though the prediction value is poor it still proves that young people had severe problems with mental helth issues. Check the Odds Rations like in the Chunk below:
+```{r}
+exp(model_1$coefficients) # Gender and Age look like risk factors, other worried variables obviously also very high
+```
+
 # Model 1 diagnostics
 
 ```{r}
