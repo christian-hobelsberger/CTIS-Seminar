@@ -509,8 +509,22 @@ F1_Score(test$worried, as.logical(fitted.results_model3))
 
 # Forest Plot
 ```{r}
+all.models <- list()
+all.models[[1]] <- model_1
+all.models[[2]] <- model_2
+all.models[[3]] <- model_3
+
+plot_models(all.models, legend.title = "Model", m.labels = c("Model 1", "Model 2", "Model 3"))
+ggsave("Plots/Chris/models/lin_reg_forestplot_all_models.png", width = 12, height = 9)
+
 plot_model(model_1, ci_method = "wald")
-ggsave("Plots/Chris/models/forestplot_model1.png", width = 12, height = 9)
+ggsave("Plots/Chris/models/lin_reg_forestplot_model1.png", width = 12, height = 9)
+
+plot_model(model_2, ci_method = "wald")
+ggsave("Plots/Chris/models/lin_reg_forestplot_model2.png", width = 12, height = 9)
+
+plot_model(model_3, ci_method = "wald")
+ggsave("Plots/Chris/models/lin_reg_forestplot_model3.png", width = 12, height = 9)
 ```
 # CART
 ```{r}
