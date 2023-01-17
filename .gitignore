@@ -10,3 +10,4 @@ shiny/ctis-app/app-data/protected_data
 CTIS_microdata.csv
 .RDataTmp
 weekly_correlation_anxious_dep_continent.png
+.RDataTmp1

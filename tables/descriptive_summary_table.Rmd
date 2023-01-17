@@ -1,15 +1,17 @@
 ---
 output:
-  pdf_document: default
   word_document: default
+  pdf_document: default
   html_document: default
 ---
 
 ```{r setup, include=FALSE}
-CTIS_micro <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
-
-CTIS_micro[, c("D1", "E4", "E8", "E3", "D7a")] %>% 
-    `colnames<-` (c("During the past 7 days, how often did you feel so nervous that nothing could calm you down?", "What is your age?", "What is the highest level of education that you have completed?", "What is your gender?", "In the past 4 weeks, did you do any work for pay? By work for pay, we mean any kind of business, farming, or other activity to earn money, even if only for one hour.")) |> desctable::desc_table() |> pander::pander()
+# CTIS_micro <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
+# 
+# # E4 = Age, E3 = Gender, E8 = Education, E2 = Where do you live, V11 = Pregnant
+# 
+# CTIS_micro[, c("D1", "E4", "E3", "E8", "E2", "V11")] %>% 
+#     `colnames<-` (c("During the past 7 days, how often did you feel so nervous that nothing could calm you down?", "What is your age?", "What is your gender?", "What is the highest level of education that you have completed?", "Which of these best describes the area where you are currently staying?", "Are you currently pregnant?")) |> desctable::desc_table() |> pander::pander()
 ```
 
 ##### Table 1.  Summary statistics of categorical model variables (n = 66,613,710)
@@ -53,6 +55,18 @@ CTIS_micro[, c("D1", "E4", "E8", "E3", "D7a")] %>%
 
 *75+*                             1161586    2.115  
 
+
+    **What is your gender?**      54700532     NA   
+
+*Male*                            27220165   49.76                                 
+
+*Female*                          26893157   49.16  
+
+*Other*                           135765    0.2482                 
+
+*Prefer not to answer*            451445    0.8253 
+
+
  **What is the highest level of   23515043     NA   
     education that you have                         
           completed? (E8)**                              
@@ -80,30 +94,24 @@ University completed*
            completed*                                
 
 
-    **What is your gender? (E3)** 54700532     NA   
 
-*Male*                            27220165   49.76  
-                                 
+     **Which of these best        53567701     NA   
+  describes the area where you                      
+    are currently staying?**                        
 
-*Female*                          26893157   49.16  
-                               
+*Town*                            12375973    23.1                               
 
-*Other*                           135765    0.2482 
-                                             
+*City*                            32729968    61.1    
 
-*Prefer not to answer*            451445    0.8253 
+*Village or rural area*           8461760     15.8
                               
 
- **In the past 4 weeks, did you   21663654     NA   
-  do any work for pay? By work                      
-  for pay, we mean any kind of                      
-  business, farming, or other                       
-  activity to earn money, even                      
-    if only for one hour. (D7a)**                         
 
-*Yes*                             13061530   60.29  
-                     
+      **Are you currently         37673937     NA   
+          pregnant?**                               
 
-*No*                              8602124    39.71  
+ *No*                             37290684   98.98                            
+
+*Yes*                             383253    1.017                            
                      
 ----------------------------------------------------
