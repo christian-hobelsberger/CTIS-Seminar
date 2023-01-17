@@ -37,7 +37,7 @@ CTIS_micro <- readRDS("~/CTIS-Seminar/data/protected_data/CTIS_microdata_cleanV3
 
 CTIS_macro <- readRDS("~/CTIS-Seminar/data/data_CTIS_policy.RDS")
 set.seed(2507)
-CTIS_micro$worried <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
+CTIS_micro$anxious <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
 
 
 CTIS_micro$depressed <- ifelse(CTIS_micro$D2 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
@@ -50,9 +50,7 @@ CTIS_micro$E7a <- as.numeric(CTIS_micro$E7a)
 ```{r}
 CTIS_micro <- readRDS("data/protected_data/CTIS_microdata_cleanV4.RDS")
 set.seed(2507)
-CTIS_micro$worried <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
-
-
+CTIS_micro$anxious <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
 CTIS_micro$depressed <- ifelse(CTIS_micro$D2 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
 CTIS_micro$V11[CTIS_micro$E3 %in% "Male" & is.na(CTIS_micro$V11)] <- "No"
 CTIS_micro$E5 <- as.numeric(CTIS_micro$E5)
@@ -335,6 +333,10 @@ CTIS_micro$E8 <- relevel(CTIS_micro$E8, ref = "Secondary school complete")
 CTIS_micro$V11 <- relevel(CTIS_micro$V11, ref = "No")
 CTIS_micro$E2 <- relevel(CTIS_micro$E2, ref = "Town")
 
+# E4 = Age, E3 = Gender, E8 = Education, E2 = Where do you live, V11 = Pregnant
+model_glm <- glm(anxious ~ E4 + E3 + E8 + E2 + V11,family=binomial(link='logit'), data=CTIS_micro)
+summary(model_glm)
+
 # E4 = Age, E3 = Gender, E8 = Education
 model_1 <- glm(depressed ~ E4 + E3 + E8,family=binomial(link='logit'), data=CTIS_micro)
 summary(model_1)
@@ -516,6 +518,9 @@ all.models[[3]] <- model_3
 
 plot_models(all.models, legend.title = "Model", m.labels = c("Model 1", "Model 2", "Model 3"))
 ggsave("Plots/Chris/models/lin_reg_forestplot_all_models.png", width = 12, height = 9)
+
+plot_model(model = model_glm, ci_method="wald")
+ggsave("Plots/Chris/models/model_glm.png", width = 12, height = 9)
 
 plot_model(model_1, ci_method = "wald")
 ggsave("Plots/Chris/models/lin_reg_forestplot_model1.png", width = 12, height = 9)
