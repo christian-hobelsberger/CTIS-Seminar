@@ -14,8 +14,6 @@ output:
 #     `colnames<-` (c("During the past 7 days, how often did you feel so nervous that nothing could calm you down?", "What is your age?", "What is your gender?", "What is the highest level of education that you have completed?", "Which of these best describes the area where you are currently staying?", "Are you currently pregnant?")) |> desctable::desc_table() |> pander::pander()
 ```
 
-##### Table 1.  Summary statistics of categorical model variables (n = 66,613,710)
-
 ----------------------------------------------------
            Variables                 N         %    
 -------------------------------- ---------- --------
