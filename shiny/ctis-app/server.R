@@ -212,7 +212,7 @@ shinyServer(function(input, output) {
       })
       
       output$country_ana_line <- renderPlotly({ggplotly(create_country_policy() %>% 
-                                           ggplot(aes(x = data.survey_date, y = country_mean_var, text = c("Survey date", "Continent mean of variable")))+
+                                           ggplot(aes(x = data.survey_date, y = country_mean_var))+
                                            facet_wrap(vars(input$country_ana_country))+
                                            geom_line(size = 0.1)+
                                              labs(x = "Survey date",
