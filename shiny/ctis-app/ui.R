@@ -24,7 +24,7 @@ font-size: 15px;
 shinyUI(fluidPage(
     navbarPage(id = "navbar", title = div(img(src='icon.png', style="background-color: transparent; margin-top: -10px;", height = 35), tags$a(href= "https://github.com/christian-hobelsberger/CTIS-Seminar", "CTIS Mental Health")),
                theme = shinytheme("lumen"),
-        navbarMenu("Global Analysis", icon = icon("globe"),
+        navbarMenu("Global", icon = icon("globe"),
                    tabPanel("Maps", fluid = TRUE, icon = icon("map"),
                             tags$style(button_color_css),
                             tags$style(HTML(".datepicker {z-index:99999 !important;}")),
