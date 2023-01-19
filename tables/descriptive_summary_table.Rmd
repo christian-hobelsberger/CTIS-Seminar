@@ -1,7 +1,7 @@
 ---
 output:
-  word_document: default
   pdf_document: default
+  word_document: default
   html_document: default
 ---
 
@@ -54,7 +54,7 @@ output:
 *75+*                             1161586    2.115  
 
 
-    **What is your gender?**      54700532     NA   
+    **What is your gender? (E3)**      54700532     NA   
 
 *Male*                            27220165   49.76                                 
 
@@ -95,7 +95,7 @@ University completed*
 
      **Which of these best        53567701     NA   
   describes the area where you                      
-    are currently staying?**                        
+    are currently staying? (E2)**                        
 
 *Town*                            12375973    23.1                               
 
@@ -106,7 +106,7 @@ University completed*
 
 
       **Are you currently         37673937     NA   
-          pregnant?**                               
+          pregnant? (V11)**                               
 
  *No*                             37290684   98.98                            
 

@@ -7,7 +7,7 @@ library(timetk)
 library(lubridate)
 
 # Loading the microdata
-CTIS_microdata <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
+CTIS_microdata <- readRDS("data/protected_data/CTIS_microdata_cleanV4.RDS")
 
 # Create 2nd dataset without NAs
 CTIS_microdata_WO_NA <- CTIS_microdata[complete.cases(CTIS_microdata[, c("D1", "E4")]), ]
@@ -242,41 +242,41 @@ table_D1_D7a_Date <- CTIS_microdata %>%
 
 # Plots with tables ----------------------------------------------------------------
 
-# Plot: D1 (nervous)
+# Plot: D1 (anxious)
 ggplot(table_D1, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
-  labs(title = "D1 (nervous)", 
+  labs(title = "D1 (anxious)", 
        y = "relative frequencies")
 ggsave("Plots/Chris/table_data/D1_barplot.png", width = 12, height = 9)
 
 ggplot(table_D1_WO_NA, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
-  labs(title = "D1 (nervous) - no NAs", 
+  labs(title = "D1 (anxious) - no NAs", 
        y = "relative frequencies")
 ggsave("Plots/Chris/table_data/NO_NA_D1_barplot.png", width = 12, height = 9)
 
-# Plot: D1 (nervous) vs. weekdays - abs
+# Plot: D1 (anxious) vs. weekdays - abs
 ggplot(data = table_D1_weekday_abs, mapping = aes(x = day_of_week, y = n)) +
   geom_bar(stat = "identity") +
-  labs(title = "D1 (nervous) vs. weekdays - absolute", 
+  labs(title = "D1 (anxious) vs. weekdays - absolute", 
        x = "Day of the week",
-       y = "Count of D1 (nervous)")
+       y = "Count of D1 (anxious)")
 ggsave("Plots/Chris/table_data/D1_vs_weekday_abs.png", width = 12, height = 9)
 
-# Plot: D1 (nervous) vs. weekdays - rel
+# Plot: D1 (anxious) vs. weekdays - rel
 ggplot(data = table_D1_weekday_rel, mapping = aes(x = day_of_week, y = n)) +
   geom_bar(mapping = aes(fill = D1), position = "dodge", stat = "identity") +
-  labs(title = "D1 (nervous) vs. weekdays - relative", 
+  labs(title = "D1 (anxious) vs. weekdays - relative", 
        x = "Day of the week",
        y = "Count",) + 
-  scale_fill_brewer(palette = "Blues", name = "D1 (nervous)")
+  scale_fill_brewer(palette = "Blues", name = "D1 (anxious)")
 ggsave("Plots/Chris/table_data/D1_vs_weekday_rel.png", width = 12, height = 9)
   
 
 ## Plot NAs and Observations _____________________________________________
 
-# Plot: NAs D1 (nervous) vs RecordedDate
+# Plot: NAs D1 (anxious) vs RecordedDate
 ggplot(data = table_NA_D1_Date, mapping = aes(x = RecordedDate, y = count_NA)) +
   geom_line() +
-  labs(title = "NAs D1 (nervous) vs RecordedDate",
+  labs(title = "NAs D1 (anxious) vs RecordedDate",
        y = "Count of NAs - D1 (per day)")
 ggsave("Plots/Chris/table_data/NAs_RecordedDate_D1_lineplot.png", width = 12, height = 9)
 
@@ -314,10 +314,10 @@ ggsave("Plots/Chris/table_data/NAs_RecordedDate_D7a_lineplot.png", width = 12, h
 
 
 
-# Plot: Observations D1 (nervous) vs RecordedDate
+# Plot: Observations D1 (anxious) vs RecordedDate
 ggplot(data = table_Obs_D1_Date, mapping = aes(x = RecordedDate, y = count)) +
   geom_line() +
-  labs(title = "Observations D1 (nervous) vs RecordedDate",
+  labs(title = "Observations D1 (anxious) vs RecordedDate",
        y = "Count of Observations - D1 (per day)")
 ggsave("Plots/Chris/table_data/Obs_RecordedDate_D1_lineplot.png", width = 12, height = 9)
 
@@ -356,193 +356,204 @@ ggsave("Plots/Chris/table_data/Obs_RecordedDate_D7a_lineplot.png", width = 12, h
 
 # Plot multiple variables _________________________________________
 
-# Plot D1 (nervous) vs E4 (age group)
+# Plot D1 (anxious) vs E4 (age group)
 ggplot(table_D1_E4, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
   facet_wrap(~E4) +
   coord_flip() +
-  labs(title = "D1 (nervous) vs E4 (age group)", 
+  labs(title = "D1 (anxious) vs E4 (age group)", 
        y = "relative frequencies",
-       x = "D1 (nervous)")
+       x = "D1 (anxious)")
 ggsave("Plots/Chris/table_data/D1_vs_E4_barplot.png", width = 12, height = 9)
 
 ggplot(table_D1_E4_WO_NA, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
   facet_wrap(~E4) +
   coord_flip() +
-  labs(title = "D1 (nervous) vs E4 (age group)", 
+  labs(title = "D1 (anxious) vs E4 (age group)", 
        y = "relative frequencies",
-       x = "D1 (nervous)")
+       x = "D1 (anxious)")
 ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E4_barplot.png", width = 12, height = 9)
 
 ggplot(table_D1_E4, aes(x = D1, y = perc)) + 
   geom_bar(mapping = aes(fill = E4), position = "dodge", stat = "identity") +
-  labs(title = "D1 (nervous) vs E4 (age group)", 
+  labs(title = "D1 (anxious) vs E4 (age group)", 
        y = "relative frequencies",
-       x = "D1 (nervous)",) + 
+       x = "D1 (anxious)",) + 
   scale_fill_brewer(palette = "Blues", name = "E4 (age group)", na.value="black")
 ggsave("Plots/Chris/table_data/D1_vs_E4_dodge_barplot.png", width = 12, height = 9)
 
 ggplot(table_D1_E4_WO_NA, aes(x = D1, y = perc)) + 
   geom_bar(mapping = aes(fill = E4), position = "dodge", stat = "identity") +
-  labs(title = "D1 (nervous) vs E4 (age group)", 
+  labs(title = "D1 (anxious) vs E4 (age group)", 
        y = "relative frequencies",
-       x = "D1 (nervous)",) + 
+       x = "D1 (anxious)",) + 
   scale_fill_brewer(palette = "Blues", name = "E4 (age group)")
 ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E4_dodge_barplot.png", width = 12, height = 9)
 
 
 
-# Plot D1 (nervous) vs E8 (highest education-level)
+# Plot D1 (anxious) vs E8 (highest education-level)
 ggplot(table_D1_E8, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
   facet_wrap(~E8) +
   coord_flip() +
-  labs(title = "D1 (nervous) vs E8 (highest education-level)", 
+  labs(title = "D1 (anxious) vs E8 (highest education-level)", 
        y = "relative frequencies",
-       x = "D1 (nervous)")
+       x = "D1 (anxious)")
 ggsave("Plots/Chris/table_data/D1_vs_E8_barplot.png", width = 12, height = 9)
 
 ggplot(table_D1_E8_WO_NA, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
   facet_wrap(~E8) +
   coord_flip() +
-  labs(title = "D1 (nervous) vs E8 (highest education-level)", 
+  labs(title = "D1 (anxious) vs E8 (highest education-level)", 
        y = "relative frequencies",
-       x = "D1 (nervous)")
+       x = "D1 (anxious)")
 ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E8_barplot.png", width = 12, height = 9)
 
 ggplot(table_D1_E8, aes(x = D1, y = perc)) + 
   geom_bar(mapping = aes(fill = E8), position = "dodge", stat = "identity") +
-  labs(title = "D1 (nervous) vs E8 (highest education-level)", 
+  labs(title = "D1 (anxious) vs E8 (highest education-level)", 
        y = "relative frequencies",
-       x = "D1 (nervous)",) + 
+       x = "D1 (anxious)",) + 
   scale_fill_brewer(palette = "Blues", name = "E8 (highest education-level)", na.value="black")
 ggsave("Plots/Chris/table_data/D1_vs_E8_dodge_barplot.png", width = 12, height = 9)
 
 ggplot(table_D1_E8_WO_NA, aes(x = D1, y = perc)) + 
   geom_bar(mapping = aes(fill = E8), position = "dodge", stat = "identity") +
-  labs(title = "D1 (nervous) vs E8 (highest education-level)", 
+  labs(title = "D1 (anxious) vs E8 (highest education-level)", 
        y = "relative frequencies",
-       x = "D1 (nervous)",) + 
+       x = "D1 (anxious)",) + 
   scale_fill_brewer(palette = "Blues", name = "E8 (highest education-level)")
 ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E8_dodge_barplot.png", width = 12, height = 9)
 
 
 
-# Plot D1 (nervous) vs E3 (gender)
+# Plot D1 (anxious) vs E3 (gender)
 ggplot(table_D1_E3, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
   facet_wrap(~E3) +
   coord_flip() +
-  labs(title = "D1 (nervous) vs E3 (gender)", 
+  labs(title = "D1 (anxious) vs E3 (gender)", 
        y = "relative frequencies",
-       x = "D1 (nervous)")
+       x = "D1 (anxious)")
 ggsave("Plots/Chris/table_data/D1_vs_E3_barplot.png", width = 12, height = 9)
 
 ggplot(table_D1_E3_WO_NA, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
   facet_wrap(~E3) +
   coord_flip() +
-  labs(title = "D1 (nervous) vs E3 (gender)", 
+  labs(title = "D1 (anxious) vs E3 (gender)", 
        y = "relative frequencies",
-       x = "D1 (nervous)")
+       x = "D1 (anxious)")
 ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E3_barplot.png", width = 12, height = 9)
 
 ggplot(table_D1_E3, aes(x = D1, y = perc)) + 
   geom_bar(mapping = aes(fill = E3), position = "dodge", stat = "identity") +
-  labs(title = "D1 (nervous) vs E3 (gender)", 
+  labs(title = "D1 (anxious) vs E3 (gender)", 
        y = "relative frequencies",
-       x = "D1 (nervous)",) + 
+       x = "D1 (anxious)",) + 
   scale_fill_brewer(palette = "Blues", name = "E3 (gender)", na.value="black")
 ggsave("Plots/Chris/table_data/D1_vs_E3_dodge_barplot.png", width = 12, height = 9)
 
 ggplot(table_D1_E3_WO_NA, aes(x = D1, y = perc)) + 
   geom_bar(mapping = aes(fill = E3), position = "dodge", stat = "identity") +
-  labs(title = "D1 (nervous) vs E3 (gender)", 
+  labs(title = "D1 (anxious) vs E3 (gender)", 
        y = "relative frequencies",
-       x = "D1 (nervous)",) + 
+       x = "D1 (anxious)",) + 
   scale_fill_brewer(palette = "Blues", name = "E3 (gender)")
 ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E3_dodge_barplot.png", width = 12, height = 9)
 
 
 
-# Plot D1 (nervous) vs D7a (work last 4 weeks)
+# Plot D1 (anxious) vs D7a (work last 4 weeks)
 ggplot(table_D1_D7a, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
   facet_wrap(~D7a) +
   coord_flip() +
-  labs(title = "D1 (nervous) vs D7a (work last 4 weeks)", 
+  labs(title = "D1 (anxious) vs D7a (work last 4 weeks)", 
        y = "relative frequencies",
-       x = "D1 (nervous)")
+       x = "D1 (anxious)")
 ggsave("Plots/Chris/table_data/D1_vs_D7a_barplot.png", width = 12, height = 9)
 
 ggplot(table_D1_D7a_WO_NA, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
   facet_wrap(~D7a) +
   coord_flip() +
-  labs(title = "D1 (nervous) vs D7a (work last 4 weeks)", 
+  labs(title = "D1 (anxious) vs D7a (work last 4 weeks)", 
        y = "relative frequencies",
-       x = "D1 (nervous)")
+       x = "D1 (anxious)")
 ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E3_barplot.png", width = 12, height = 9)
 
 ggplot(table_D1_D7a, aes(x = D1, y = perc)) + 
   geom_bar(mapping = aes(fill = D7a), position = "dodge", stat = "identity") +
-  labs(title = "D1 (nervous) vs D7a (work last 4 weeks)", 
+  labs(title = "D1 (anxious) vs D7a (work last 4 weeks)", 
        y = "relative frequencies",
-       x = "D1 (nervous)",) + 
+       x = "D1 (anxious)",) + 
   scale_fill_brewer(palette = "Blues", name = "D7a (work last 4 weeks)", na.value="black")
 ggsave("Plots/Chris/table_data/D1_vs_E3_dodge_barplot.png", width = 12, height = 9)
 
 ggplot(table_D1_D7a_WO_NA, aes(x = D1, y = perc)) + 
   geom_bar(mapping = aes(fill = D7a), position = "dodge", stat = "identity") +
-  labs(title = "D1 (nervous) vs D7a (work last 4 weeks)", 
+  labs(title = "D1 (anxious) vs D7a (work last 4 weeks)", 
        y = "relative frequencies",
-       x = "D1 (nervous)",) + 
+       x = "D1 (anxious)",) + 
   scale_fill_brewer(palette = "Blues", name = "D7a (work last 4 weeks)")
 ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E3_dodge_barplot.png", width = 12, height = 9)
 
 
 
-# Plot D1 (nervous) vs RecordedDate
+# Plot D1 (anxious) vs RecordedDate
 ggplot(data = table_D1_Date, mapping = aes(x = RecordedDate, y = perc)) +
   geom_line(mapping = aes(color = D1)) +
-  labs(title = "D1 (nervous) vs RecordedDate", 
+  labs(title = "D1 (anxious) vs RecordedDate", 
        y = "relative frequencies",
-       color = "D1 (nervous)")
+       color = "D1 (anxious)")
 ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_lineplot.png", width = 12, height = 9)
 
 
-# Plot D1 (nervous) vs RecordedDate vs E4 (age group)
+# Plot D1 (anxious) vs RecordedDate vs E4 (age group)
 ggplot(data = table_D1_E4_Date, mapping = aes(x = RecordedDate, y = perc)) +
   geom_line(mapping = aes(color = D1)) +
   facet_wrap(~E4) +
-  labs(title = "D1 (nervous) vs RecordedDate vs E4 (age group)", 
+  labs(title = "D1 (anxious) vs RecordedDate vs E4 (age group)", 
        y = "relative frequencies",
-       color = "D1 (nervous)")
+       color = "D1 (anxious)")
 ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_vs_E4_lineplot.png", width = 12, height = 9)
 
 
-# Plot D1 (nervous) vs RecordedDate vs E8 (highest education-level)
+# Plot D1 (anxious) vs RecordedDate vs E8 (highest education-level)
 ggplot(data = table_D1_E8_Date, mapping = aes(x = RecordedDate, y = perc)) +
   geom_line(mapping = aes(color = D1)) +
   facet_wrap(~E8) +
-  labs(title = "D1 (nervous) vs RecordedDate vs E8 (highest education-level)", 
+  labs(title = "D1 (anxious) vs RecordedDate vs E8 (highest education-level)", 
        y = "relative frequencies",
-       color = "D1 (nervous)")
+       color = "D1 (anxious)")
 ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_vs_E4_lineplot.png", width = 12, height = 9)
 
 
-# Plot D1 (nervous) vs RecordedDate vs E3 (gender)
+# Plot D1 (anxious) vs RecordedDate vs E3 (gender)
 ggplot(data = table_D1_E3_Date, mapping = aes(x = RecordedDate, y = perc)) +
   geom_line(mapping = aes(color = D1)) +
   facet_wrap(~E3) +
-  labs(title = "D1 (nervous) vs RecordedDate vs E3 (gender)", 
+  labs(title = "D1 (anxious) vs RecordedDate vs E3 (gender)", 
        y = "relative frequencies",
-       color = "D1 (nervous)")
+       color = "D1 (anxious)")
 ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_vs_E3_lineplot.png", width = 12, height = 9)
 
 
-# Plot D1 (nervous) vs RecordedDate vs D7a (work last 4 weeks)
+# Plot D1 (anxious) vs RecordedDate vs D7a (work last 4 weeks)
 ggplot(data = table_D1_D7a_Date, mapping = aes(x = RecordedDate, y = perc)) +
   geom_line(mapping = aes(color = D1)) +
   facet_wrap(~D7a) +
-  labs(title = "D1 (nervous) vs RecordedDate vs D7a (work last 4 weeks)", 
+  labs(title = "D1 (anxious) vs RecordedDate vs D7a (work last 4 weeks)", 
        y = "relative frequencies",
-       color = "D1 (nervous)")
+       color = "D1 (anxious)")
 ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_vs_D7a_lineplot.png", width = 12, height = 9)
+
+# Arranged plots ------------------------------------------------------------------
+# Plot: D1 (anxious)
+D1_barplot <- ggplot(table_D1, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
+  labs(title = "D1 (anxious)", 
+       y = "relative frequencies")
+NO_NA_D1_barplot <- ggplot(table_D1_WO_NA, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
+  labs(title = "D1 (anxious) - no NAs", 
+       y = "relative frequencies")
+ggarrange(D1_barplot, NO_NA_D1_barplot, ncol = 2, nrow = 1)
+ggsave("Plots/Chris/table_data/aggregated_D1.png", width = 12, height = 9)
 
 
 # Plots with data ------------------------------------------------------------------
@@ -552,12 +563,12 @@ ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_vs_D7a_lineplot.png", width = 
 #   geom_bar() + 
 #   scale_y_continuous(labels=scales::percent) +
 #   ylab("relative frequencies") +
-#   labs(title = "D1 (nervous)")
+#   labs(title = "D1 (anxious)")
 # 
 # 
 # ggplot(data = CTIS_microdata, mapping = aes(y = D1)) + 
 #   geom_bar(stat = "identity") +
-#   labs(title = "D1 (nervous)")
+#   labs(title = "D1 (anxious)")
 # ggsave("graphics/depressed_7d_boxplot.png", width = 12, height = 9)
 # 
 # 
@@ -572,7 +583,7 @@ ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_vs_D7a_lineplot.png", width = 
 #   ylab("relative frequencies") +
 #   facet_wrap(~E4) +
 #   coord_flip() +
-#   labs(title = "D1 (nervous) vs E4 (Age)")
+#   labs(title = "D1 (anxious) vs E4 (Age)")
 # ggsave(filename = "Plots/Chris/D1vsE4barplot.png", 
 #        plot = barplot_D1vsE4, width = 12, height = 12)
 
