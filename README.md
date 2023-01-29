@@ -1,5 +1,7 @@
 # CTIS mental health
+<p align="center">
 <img src="shiny/ctis-app/www/icon.png" width="100" height="100" class="center">
+</p>
 
 ## The CTIS Survey
 "The University of Maryland Social Data Science Center Global COVID-19 Trends and Impact Survey, in partnership with Facebook" [UMD Global CTIS](https://covidmap.umd.edu/) serves as the data source for this study. During the survey period, a representative sample of Facebook users aged 18 and over were invited to report on symptoms, social distancing behavior, mental health issues, and financial constraints on a daily basis.
