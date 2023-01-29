@@ -16,8 +16,6 @@ library(pROC)
 library(corrplot)
 library(olsrr)
 library(glmnet)
-library(desctable)
-library(pander)
 library(effects)
 library(arsenal)
 library(mboost)
@@ -330,12 +328,12 @@ plot(best_sub_model_continent)
 CTIS_micro$E4 <- relevel(CTIS_micro$E4, ref = "45-54")
 CTIS_micro$E3 <- relevel(CTIS_micro$E3, ref = "Male")
 CTIS_micro$E8 <- relevel(CTIS_micro$E8, ref = "Secondary school complete")
-CTIS_micro$V11 <- relevel(CTIS_micro$V11, ref = "No")
 CTIS_micro$E2 <- relevel(CTIS_micro$E2, ref = "Town")
 
-# E4 = Age, E3 = Gender, E8 = Education, E2 = Where do you live, V11 = Pregnant
-model_glm <- glm(anxious ~ E4 + E3 + E8 + E2 + V11,family=binomial(link='logit'), data=CTIS_micro)
+# E4 = Age, E3 = Gender, E8 = Education, E2 = Where do you live
+model_glm <- glm(anxious ~ E4 + E3 + E8 + E2,family=binomial(link='logit'), data=CTIS_micro)
 summary(model_glm)
+exp(model_glm$coefficients)
 
 # E4 = Age, E3 = Gender, E8 = Education
 model_1 <- glm(depressed ~ E4 + E3 + E8,family=binomial(link='logit'), data=CTIS_micro)
@@ -528,15 +526,22 @@ F1_Score(test$worried, as.logical(fitted.results_model3))
 # Forest Plot
 ```{r}
 all.models <- list()
+all.models[[1]] <- model_glm
+
+plot_models(all.models)
+ggsave("Plots/Chris/models/model_glm3.png", width = 12, height = 9)
+
+plot_model(model = model_glm)
+ggsave("Plots/Chris/models/model_glm4.png", width = 12, height = 9)
+
+
+all.models <- list()
 all.models[[1]] <- model_1
 all.models[[2]] <- model_2
 all.models[[3]] <- model_3
 
 plot_models(all.models, legend.title = "Model", m.labels = c("Model 1", "Model 2", "Model 3"))
 ggsave("Plots/Chris/models/lin_reg_forestplot_all_models.png", width = 12, height = 9)
-
-plot_model(model = model_glm, ci_method="wald")
-ggsave("Plots/Chris/models/model_glm.png", width = 12, height = 9)
 
 plot_model(model_1, ci_method = "wald")
 ggsave("Plots/Chris/models/lin_reg_forestplot_model1.png", width = 12, height = 9)
@@ -566,7 +571,6 @@ CTIS_micro$worried <- as.factor(CTIS_micro$worried)
 glm <- glmboost(worried ~ E3 + E4 + E2 + V11 + E8 , family = Binomial(link='logit'), 
                 data = CTIS_micro, control= boost_control(trace=TRUE))
 
-```{r}
 test <- na.omit(test)
 
 fitted.results_model1 <- predict(model_1, newdata= test[c("E3", "E4", "E2", "V11", "E8", "worried", "D7a")], type='response')

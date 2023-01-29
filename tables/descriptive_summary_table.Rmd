@@ -101,15 +101,6 @@ University completed*
 
 *City*                            32729968    61.1    
 
-*Village or rural area*           8461760     15.8
-                              
-
-
-      **Are you currently         37673937     NA   
-          pregnant? (V11)**                               
-
- *No*                             37290684   98.98                            
-
-*Yes*                             383253    1.017                            
+*Village or rural area*           8461760     15.8                           
                      
 ----------------------------------------------------

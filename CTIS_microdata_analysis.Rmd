@@ -1,21 +1,22 @@
-### Chris: Advanced microdata analysis
+---
+title: "Advanced CTIS microdata analysis"
+author: "Christian Hobelsberger
+---
 
-```{r Chris: microdata analysis}
+```{r setup, include=FALSE}
 # Load packages
 library(tidyverse)
 library(timetk)
 library(lubridate)
+library(ggpubr)
 
 # Loading the microdata
 CTIS_microdata <- readRDS("data/protected_data/CTIS_microdata_cleanV4.RDS")
+```
 
-# Create 2nd dataset without NAs
-CTIS_microdata_WO_NA <- CTIS_microdata[complete.cases(CTIS_microdata[, c("D1", "E4")]), ]
+```{r Create tables}
+# Create tables for faster plotting:
 
-# Number of distinct dates
-length(unique(as.Date(CTIS_microdata$RecordedDate)))
-
-# tables for faster plotting:
 table_D1 <- CTIS_microdata %>%
   select(D1) %>%
   group_by(D1) %>%
@@ -193,8 +194,6 @@ table_D1_weekday_rel <- CTIS_microdata %>%
   summarise(n = n()) %>%
   mutate(perc = n/sum(n))
 
-
-
 table_D1_E4_Date <- CTIS_microdata %>%
   select(RecordedDate, D1, E4) %>%
   drop_na() %>%
@@ -239,8 +238,10 @@ table_D1_D7a_Date <- CTIS_microdata %>%
   group_by(D7a, RecordedDate) %>%
   mutate(perc = n/sum(n))
 
+```
 
-# Plots with tables ----------------------------------------------------------------
+```{r Plot single variables}
+# Plots with tables for single variables:
 
 # Plot: D1 (anxious)
 ggplot(table_D1, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
@@ -327,7 +328,7 @@ ggplot(data = table_Obs_E4_Date, mapping = aes(x = RecordedDate, y = count)) +
   geom_line() +
   labs(title = "Observations E4 (age group) vs RecordedDate",
        y = "Number of Observations - E4 (per day)")
-ggsave("Plots/Chris/table_data/Obs_RecordedDate_E4_lineplot.png", width = 12, height = 9)
+ggsave("Plots/Chris/table_data/Obs_RecordedDate_E4_lineplot.png", width = 12, height = 4)
 
 
 # Plot: Observations E8 (highest education-level) vs RecordedDate
@@ -335,7 +336,7 @@ ggplot(data = table_Obs_E8_Date, mapping = aes(x = RecordedDate, y = count)) +
   geom_line() +
   labs(title = "Observations E8 (highest education-level) vs RecordedDate",
        y = "Number of Observations - E8 (per day)")
-ggsave("Plots/Chris/table_data/Obs_RecordedDate_E8_lineplot.png", width = 12, height = 9)
+ggsave("Plots/Chris/table_data/Obs_RecordedDate_E8_lineplot.png", width = 12, height = 4)
 
 
 # Plot: Observations E3 (gender) vs RecordedDate
@@ -352,9 +353,10 @@ ggplot(data = table_Obs_D7a_Date, mapping = aes(x = RecordedDate, y = count)) +
   labs(title = "Observations D7a (work last 4 weeks) vs RecordedDate",
        y = "Number of Observations - D7a (per day)")
 ggsave("Plots/Chris/table_data/Obs_RecordedDate_D7a_lineplot.png", width = 12, height = 9)
+```
 
-
-# Plot multiple variables _________________________________________
+```{r Plot multiple variables}
+# Plot multiple variables:
 
 # Plot D1 (anxious) vs E4 (age group)
 ggplot(table_D1_E4, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
@@ -387,7 +389,7 @@ ggplot(table_D1_E4_WO_NA, aes(x = D1, y = perc)) +
        y = "relative frequencies",
        x = "D1 (anxious)",) + 
   scale_fill_brewer(palette = "Blues", name = "E4 (age group)")
-ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E4_dodge_barplot.png", width = 12, height = 9)
+ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E4_dodge_barplot.png", width = 12, height = 6)
 
 
 
@@ -493,8 +495,10 @@ ggplot(table_D1_D7a_WO_NA, aes(x = D1, y = perc)) +
        x = "D1 (anxious)",) + 
   scale_fill_brewer(palette = "Blues", name = "D7a (work last 4 weeks)")
 ggsave("Plots/Chris/table_data/NO_NA_D1_vs_E3_dodge_barplot.png", width = 12, height = 9)
+```
 
-
+```{r Plot variables over time}
+# Plot variables over time:
 
 # Plot D1 (anxious) vs RecordedDate
 ggplot(data = table_D1_Date, mapping = aes(x = RecordedDate, y = perc)) +
@@ -502,7 +506,7 @@ ggplot(data = table_D1_Date, mapping = aes(x = RecordedDate, y = perc)) +
   labs(title = "D1 (anxious) vs RecordedDate", 
        y = "relative frequencies",
        color = "D1 (anxious)")
-ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_lineplot.png", width = 12, height = 9)
+ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_lineplot.png", width = 12, height = 4)
 
 
 # Plot D1 (anxious) vs RecordedDate vs E4 (age group)
@@ -512,7 +516,7 @@ ggplot(data = table_D1_E4_Date, mapping = aes(x = RecordedDate, y = perc)) +
   labs(title = "D1 (anxious) vs RecordedDate vs E4 (age group)", 
        y = "relative frequencies",
        color = "D1 (anxious)")
-ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_vs_E4_lineplot.png", width = 12, height = 9)
+ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_vs_E4_lineplot.png", width = 12, height = 6)
 
 
 # Plot D1 (anxious) vs RecordedDate vs E8 (highest education-level)
@@ -522,7 +526,7 @@ ggplot(data = table_D1_E8_Date, mapping = aes(x = RecordedDate, y = perc)) +
   labs(title = "D1 (anxious) vs RecordedDate vs E8 (highest education-level)", 
        y = "relative frequencies",
        color = "D1 (anxious)")
-ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_vs_E4_lineplot.png", width = 12, height = 9)
+ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_vs_E8_lineplot.png", width = 12, height = 9)
 
 
 # Plot D1 (anxious) vs RecordedDate vs E3 (gender)
@@ -543,48 +547,29 @@ ggplot(data = table_D1_D7a_Date, mapping = aes(x = RecordedDate, y = perc)) +
        y = "relative frequencies",
        color = "D1 (anxious)")
 ggsave("Plots/Chris/table_data/D1_vs_RecordedDate_vs_D7a_lineplot.png", width = 12, height = 9)
+```
+
+
+```{r Arrange plots}
+# Arrange some plots:
 
 # Arranged plots ------------------------------------------------------------------
-# # Plot: D1 (anxious)
-# D1_barplot <- ggplot(table_D1, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
-#   labs(title = "D1 (anxious)", 
-#        y = "relative frequencies")
-# NO_NA_D1_barplot <- ggplot(table_D1_WO_NA, aes(x = D1, y = perc)) + geom_bar(stat = "identity") +
-#   labs(title = "D1 (anxious) - no NAs", 
-#        y = "relative frequencies")
-# ggarrange(D1_barplot, NO_NA_D1_barplot, ncol = 2, nrow = 1)
-# ggsave("Plots/Chris/table_data/aggregated_D1.png", width = 12, height = 9)
+
+NO_NA_D1_vs_E8_dodge_barplot <- ggplot(table_D1_E8_WO_NA, aes(x = D1, y = perc)) + 
+  geom_bar(mapping = aes(fill = E8), position = "dodge", stat = "identity") +
+  labs(title = "D1 (anxious) vs E8 (highest education-level)", 
+       y = "relative frequencies",
+       x = "D1 (anxious)",) + 
+  scale_fill_brewer(palette = "Blues", name = "E8 (highest education-level)")
+D1_vs_RecordedDate_vs_E8_lineplot <- ggplot(data = table_D1_E8_Date, mapping = aes(x = RecordedDate, y = perc)) +
+  geom_line(mapping = aes(color = D1)) +
+  facet_wrap(~E8) +
+  labs(title = "D1 (anxious) vs RecordedDate vs E8 (highest education-level)", 
+       y = "relative frequencies",
+       color = "D1 (anxious)")
 
 
-# Plots with data ------------------------------------------------------------------
-
-# # Plot: D1
-# ggplot(data = CTIS_microdata, mapping = aes(x = D1)) + 
-#   geom_bar() + 
-#   scale_y_continuous(labels=scales::percent) +
-#   ylab("relative frequencies") +
-#   labs(title = "D1 (anxious)")
-# 
-# 
-# ggplot(data = CTIS_microdata, mapping = aes(y = D1)) + 
-#   geom_bar(stat = "identity") +
-#   labs(title = "D1 (anxious)")
-# ggsave("graphics/depressed_7d_boxplot.png", width = 12, height = 9)
-# 
-# 
-# # Plot: D1 vs E4
-# ggplot(data = CTIS_microdata, mapping = aes(x = D1)) + 
-#   geom_bar() +
-#   facet_wrap(~E4)
-# 
-# barplot_D1vsE4 <- ggplot(data = CTIS_microdata, aes(x = D1, group = E4)) + 
-#   geom_bar(aes(y = ..prop..), stat="count") + 
-#   scale_y_continuous(labels=scales::percent) +
-#   ylab("relative frequencies") +
-#   facet_wrap(~E4) +
-#   coord_flip() +
-#   labs(title = "D1 (anxious) vs E4 (Age)")
-# ggsave(filename = "Plots/Chris/D1vsE4barplot.png", 
-#        plot = barplot_D1vsE4, width = 12, height = 12)
-
+ggarrange(NO_NA_D1_vs_E8_dodge_barplot, D1_vs_RecordedDate_vs_E8_lineplot, ncol = 1, nrow = 2,
+          labels = c("A", "B", "C", "D"))
+ggsave("Plots/Chris/table_data/arranged_D1_E8.png", width = 12, height = 12)
 ```
