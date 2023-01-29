@@ -1,11 +1,21 @@
-# Script to download and later combine microdata
-```{r}
+---
+title: "Script to download and later combine microdata"
+author: "Christian Hobelsberger
+---
+
+```{r setup, include=FALSE}
+# Load packages
 library(readr)
 library(dplyr)
 library(data.table)
 library(CTIS)
 library(rgdal)
-# Skript to Download microdata
+```
+
+
+```{r Skript to download microdata}
+# Skript to Download microdata:
+
 setwd("data/microdata")
 date_vec <- seq(as.Date("2020-04-23"), as.Date("2022-06-25"), by = "day") # Second date is end date
 username <- readline(prompt = "Enter username for CTIS login: ")
@@ -48,12 +58,15 @@ for (file in csv_files) {
 }
 setwd("..")
 write_csv(x = CTIS_microdata, file = "protected_data/CTIS_microdata_complete.csv")
+```
 
-# Data Cleaning -----------------------------------------------------------
+
+```{r Data cleaning and saving}
+# Data Cleaning:
 
 # Loading the microdata
 CTIS_microdata <- readr::read_csv(file = "protected_data/CTIS_microdata_complete.csv", col_names = TRUE,
-                                  col_types = c(.default = "f", weight = "d", RecordedDate = "T", E7a = "d"), 
+                                  col_types = c(.default = "f", weight = "d", weight = "E7a", RecordedDate = "T", E7a = "d"), 
                                   na = c("NA", "-99", "-88", "-77"))
 
 # Validation if unique days equal number of csv files
@@ -173,55 +186,6 @@ levels(CTIS_microdata_clean$D7a) <- list(
   "No" = "2"
 )
 
-# Add order
-for (element in c("D1", "D2", "D4", "E4", "D5", "E8")) {
-  CTIS_microdata_clean[[element]] <- as.ordered(CTIS_microdata_clean[[element]])
-}
 
-
-# Read policy_data
-policy_data <- readRDS(file = "data/policy_data.RDS")
-
-# 
-# data_CTIS_policy <- data_CTIS %>% 
-#   left_join(policy_data, by = c("data.country", "data.iso_code", "data.survey_date" = "data.date"))
-
-# Save clean microdata
-saveRDS(object = CTIS_microdata_clean, file = "data/protected_data/CTIS_microdata_cleanV3.RDS")
-
-write_csv(x = CTIS_microdata_clean, file = "data/protected_data/CTIS_microdata_cleanV3.csv")
-
-# quick fix: E7a data type
-# Loading the microdata
-#CTIS_microdata <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
-#
-#CTIS_microdata[["E7a"]] <- as.numeric(CTIS_microdata[["E7a"]])
-#
-#saveRDS(object = CTIS_microdata, file = "data/protected_data/CTIS_microdata_cleanV3.RDS")
-
-# quick fix: Remove order from all factor variables
-# Loading the microdata
-
-CTIS_microdata <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
-
-
-for (col_name in names(CTIS_microdata)) {
-  if (is.ordered(CTIS_microdata[[col_name]])) {
-    CTIS_microdata[[col_name]] <- factor(CTIS_microdata[[col_name]], ordered = FALSE )
-  }
-}
-
-# Map country data 
-
-
-# Load shapefile
-country_map <- read.csv("data/protected_data/country_map.csv")
-CTIS_microdata$A2_2_1 <- as.numeric(CTIS_microdata$A2_2_1)
-CTIS_microdata$A2_2_2 <- as.numeric(CTIS_microdata$A2_2_2)
-CTIS_microdata_v5 <- left_join(CTIS_microdata, country_map, by = c("A2_2_2" = "country_region_numeric"))
-
-
-saveRDS(object = CTIS_microdata_v5, file = "data/protected_data/CTIS_microdata_cleanV5.RDS")
-
+saveRDS(object = CTIS_microdata_v5, file = "data/protected_data/CTIS_microdata_cleanV4.RDS")
 ```
-
