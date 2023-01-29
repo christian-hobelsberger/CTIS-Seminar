@@ -8,10 +8,10 @@ library(plotly)
 data_CTIS_map <- readRDS("app-data/data_CTIS_map.RDS")
 data_CTIS_policy <- readRDS("app-data/data_CTIS_policy.RDS")
 named_variable_vec <- c("Anxious last 7 days (anxious_7d)" = "anxious_7d",
-                        "Depressed last 7 days (depressed_7d)" = "depressed_7d",
-                        "Worried about finance (finance)" = "finance",
-                        "Worried about food security (food_security)" = "food_security",
-                        "Worried to become ill (worried_become_ill)" = "worried_become_ill")
+                         "Depressed last 7 days (depressed_7d)" = "depressed_7d",
+                         "Worried about finance (finance)" = "finance",
+                         "Worried about food security (food_security)" = "food_security",
+                         "Worried to become ill (worried_become_ill)" = "worried_become_ill")
 button_color_css <- "
 #DivCompClear, #FinderClear, #EnterTimes{
 /* Change the background color of the update button
@@ -24,58 +24,31 @@ font-size: 15px;
 shinyUI(fluidPage(
     navbarPage(id = "navbar", title = div(img(src='icon.png', style="background-color: transparent; margin-top: -10px;", height = 35), tags$a(href= "https://github.com/christian-hobelsberger/CTIS-Seminar", "CTIS Mental Health")),
                theme = shinytheme("lumen"),
-             navbarMenu("Maps", icon = icon("map"),
-               tabPanel("World maps", fluid = TRUE, icon = icon("globe"),
-               tags$style(button_color_css),
-               tags$style(HTML(".datepicker {z-index:99999 !important;}")),
-               sidebarLayout(
-                   sidebarPanel(
-                       titlePanel("Map characteristics"),
-                       selectInput(inputId = "variable",
-                                    label = "Select variable",
-                                    choices = named_variable_vec,
-                                    selected = "anxious_7d"
-                       ),
-                       dateInput(inputId = "date",
-                                 label = "Select date",
-                                 value = "2021-08-21",
-                                 min = min(data_CTIS_map$data.survey_date, na.rm = T),
-                                 max = max(data_CTIS_map$data.survey_date, na.rm = T)),
+        navbarMenu("Global", icon = icon("globe"),
+                   tabPanel("Maps", fluid = TRUE, icon = icon("map"),
+                            tags$style(button_color_css),
+                            tags$style(HTML(".datepicker {z-index:99999 !important;}")),
+                            sidebarLayout(
+                                sidebarPanel(
+                                    titlePanel("Map characteristics"),
+                                    selectInput(inputId = "variable",
+                                                label = "Select variable",
+                                                choices = named_variable_vec,
+                                                selected = "anxious_7d"
+                                    ),
+                                    dateInput(inputId = "date",
+                                              label = "Select date",
+                                              value = "2021-08-21",
+                                              min = min(data_CTIS_map$data.survey_date, na.rm = T),
+                                              max = max(data_CTIS_map$data.survey_date, na.rm = T)),
+                                ),
+                                mainPanel(
+                                    titlePanel("Global map"),
+                                    tmapOutput("global_map")
+                                )
+                            )
                    ),
-                   mainPanel(
-                     titlePanel("Global map"),
-                     tmapOutput("global_map")
-                   )
-           )
-        ),
-        tabPanel("Continent maps", fluid = TRUE, icon = icon("globe-americas"),
-                 tags$style(button_color_css),
-                 sidebarLayout(
-                   sidebarPanel(
-                     titlePanel("Map characteristics"),
-                     selectInput(inputId = "continent",
-                                 label = "Select continent",
-                                 choices = na.omit(unique(data_CTIS_map$continent)),
-                                 selected = "Europe"),
-                     selectInput(inputId = "cont_variable",
-                                 label = "Select variable",
-                                 choices = named_variable_vec,
-                                 selected = "anxious_7d"
-                     ),
-                     dateInput(inputId = "cont_date",
-                               label = "Select date",
-                               value = "2021-08-21",
-                               min = min(data_CTIS_map$data.survey_date, na.rm = T),
-                               max = max(data_CTIS_map$data.survey_date, na.rm = T)),
-                   ),
-                   mainPanel(
-                     titlePanel("Continental map"),
-                     tmapOutput("cont_map")
-                   )
-                 )
-        )
-             ),
-        tabPanel("Global Analysis", icon = icon("globe"),
+        tabPanel("Analysis", icon = icon("chart-simple"),
                  sidebarLayout(
                      sidebarPanel(
                          titlePanel("Plot characteristics"),
@@ -96,8 +69,35 @@ shinyUI(fluidPage(
                          plotlyOutput("global_micro_ana_bar")
                      )
                      )
-                 ),
-        tabPanel("Continent Analysis", icon = icon("earth-europe"),
+                 )),
+        navbarMenu("Continental", icon = icon("earth-europe"),
+                   tabPanel("Maps", fluid = TRUE, icon = icon("map"),
+                            tags$style(button_color_css),
+                            sidebarLayout(
+                                sidebarPanel(
+                                    titlePanel("Map characteristics"),
+                                    selectInput(inputId = "continent",
+                                                label = "Select continent",
+                                                choices = na.omit(unique(data_CTIS_map$continent)),
+                                                selected = "Europe"),
+                                    selectInput(inputId = "cont_variable",
+                                                label = "Select variable",
+                                                choices = named_variable_vec,
+                                                selected = "anxious_7d"
+                                    ),
+                                    dateInput(inputId = "cont_date",
+                                              label = "Select date",
+                                              value = "2021-08-21",
+                                              min = min(data_CTIS_map$data.survey_date, na.rm = T),
+                                              max = max(data_CTIS_map$data.survey_date, na.rm = T)),
+                                ),
+                                mainPanel(
+                                    titlePanel("Continental map"),
+                                    tmapOutput("cont_map")
+                                )
+                            )
+                   ),
+       tabPanel("Analysis", icon = icon("chart-simple"),
                  sidebarLayout(
                    sidebarPanel(
                      titlePanel("Plot characteristics"),
@@ -115,8 +115,9 @@ shinyUI(fluidPage(
                      plotlyOutput("cont_ana_line")
                    )
                  )
-                ),
-        tabPanel("Country Analysis", icon = icon("flag"),
+                )),
+       navbarMenu("Country", icon = icon("flag"),
+        tabPanel("Analysis", icon = icon("chart-simple"),
           sidebarLayout(
             sidebarPanel(
               titlePanel("Plot characteristics"),
@@ -135,7 +136,7 @@ shinyUI(fluidPage(
               plotlyOutput("country_ana_line")
             )
           )
-    ),
+    )),
     navbarMenu("More", icon = icon("info"),
                tabPanel("About", icon = icon("circle-question"),
                         fluidRow(

@@ -49,6 +49,7 @@ CTIS_micro$E7a <- as.numeric(CTIS_micro$E7a)
 CTIS_micro <- readRDS("data/protected_data/CTIS_microdata_cleanV4.RDS")
 set.seed(2507)
 CTIS_micro$anxious <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
+
 CTIS_micro$depressed <- ifelse(CTIS_micro$D2 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
 CTIS_micro$V11[CTIS_micro$E3 %in% "Male" & is.na(CTIS_micro$V11)] <- "No"
 CTIS_micro$E5 <- as.numeric(CTIS_micro$E5)
@@ -536,6 +537,7 @@ ggsave("Plots/Chris/models/model_glm4.png", width = 12, height = 9)
 
 
 all.models <- list()
+
 all.models[[1]] <- model_1
 all.models[[2]] <- model_2
 all.models[[3]] <- model_3
@@ -607,110 +609,6 @@ fitted.results_model3 <- ifelse(fitted.results_model3 > 0.5,1,0)
 misClasificError <- mean(as.logical(fitted.results_model3) != test$worried)
 print(paste('Accuracy',1-misClasificError))
 F1_Score(test$worried, as.logical(fitted.results_model3))
-```
-
-# Forest Plot
-```{r}
-plot_model(model_1, ci_method = "wald")
-ggsave("Plots/Chris/models/forestplot_model1.png", width = 12, height = 9)
-```
-
-
-# glmboost approach
-```{r}
-set.seed(2507)
-CTIS_micro$worried <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[4:5], 1, 0 )
-CTIS_micro$depressed <- ifelse(CTIS_micro$D2 %in% levels(CTIS_micro$D1)[4:5], 1, 0)
-CTIS_micro$worried <- as.factor(CTIS_micro$worried)
-CTIS_micro$depressed <- as.factor(CTIS_micro$depressed)
-CTIS_micro$V11[CTIS_micro$E3 %in% "Male" & is.na(CTIS_micro$V11)] <- "No"
-CTIS_micro$E5 <- as.numeric(CTIS_micro$E5)
-CTIS_micro$E7a <- as.numeric(CTIS_micro$E7a)
-split1<- sample(c(rep(0, 0.7 * nrow(CTIS_micro)), rep(1, 0.3 * nrow(CTIS_micro))))
-train <- CTIS_micro[split1 == 0, ]
-test <- CTIS_micro[split1 == 1,]
-
-glm <- glmboost(depressed ~ E3 + E4 + E2 + D4 + D5+ V11 + E8 + E5 + E7a + D7a , family = Binomial(link='logit'), 
-                data = train, control= boost_control(mstop = 200, nu = 0.1, trace=TRUE))
-
-summary(glm)
-
-plot(glm)
-
-test <- na.omit(test[c("depressed", "E3", "E4", "E2", "D4", "D5", "V11", "E8", "E5", "E7a", "D7a")])
-fitted.results_glm <- predict(glm, newdata= test, type='response')
-
-test_roc <- roc(test$depressed ~ fitted.results_glm, plot = TRUE, print.auc = TRUE)
-coords(test_roc) %>% filter(specificity > 0.62 & sensitivity > 0.65)
-
-fitted.results_glm <- ifelse(fitted.results_glm > 0.106,1,0)
-misClasificError <- mean(as.logical(fitted.results_glm) != na.omit(test$depressed))
-print(paste('Accuracy',1-misClasificError))
-
-conf_table <- table(predicted = as.logical(fitted.results_glm), 
-                    actual = test$depressed)
-confus_matrix <- caret::confusionMatrix(conf_table, positive = "TRUE")#Huge probelem with specificity
-confus_matrix
-caret::sensitivity(confus_matrix)
-
-
-glm <- glmboost(depressed ~ E3 + E4 + E2 + D4 + D5+ V11 + E8 + E5 + E7a + D7a , family = Binomial(link='logit'), 
-                data = train, control= boost_control(mstop = 200, nu = 0.1, trace=TRUE))
-
-```
-
-# YOUNG PEOPLE: glmboost approach
-# mboost approach
-```
-```{r}
-set.seed(2507)
-CTIS_micro$worried <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[4:5], 1, 0 )
-CTIS_micro$depressed <- ifelse(CTIS_micro$D2 %in% levels(CTIS_micro$D1)[4:5], 1, 0)
-CTIS_micro$worried <- as.factor(CTIS_micro$worried)
-CTIS_micro$depressed <- as.factor(CTIS_micro$depressed)
-CTIS_micro$V11[CTIS_micro$E3 %in% "Male" & is.na(CTIS_micro$V11)] <- "No"
-CTIS_micro$E5 <- as.numeric(CTIS_micro$E5)
-CTIS_micro$E7a <- as.numeric(CTIS_micro$E7a)
-CTIS_micro_18_34 <- CTIS_micro %>% filter(E4 %in% c("18-24", "25-34"))
-CTIS_micro_18_34 <- CTIS_micro_18_34[c("depressed", "E3", "E4", "E2", "D4", "D5", "V11", "E8", "E5", "E7a", "D7a")]
-
-set.seed(123)
-## 70% of the sample size
-smp_size <- floor(0.7 * nrow(CTIS_micro_18_34))
-train_ind <- sample(seq_len(nrow(CTIS_micro_18_34)), size = smp_size)
-train_18_34 <- CTIS_micro_18_34[train_ind, ]
-test_18_34 <- CTIS_micro_18_34[-train_ind, ]
-
-
-glm_boost_18_34 <- glmboost(depressed ~ E3 + E4 + E2 + D4 + D5+ V11 + E8 + E5 + E7a + D7a , 
-                            family = Binomial(link='logit'), data = train_18_34, 
-                            control= boost_control(mstop = 200, nu = 0.1, trace=TRUE))
-
-summary(glm_boost_18_34)
-
-plot(glm_boost_18_34)
-
-test_18_34 <- na.omit(test_18_34)
-fitted.glm_boost_18_34 <- predict(glm_boost_18_34, newdata= test_18_34, type='response')
-
-
-test_roc_18_34 <- roc(test$depressed ~ fitted.glm_boost_18_34, plot = TRUE, print.auc = TRUE)
-coords(test_roc) %>% filter(specificity > 0.62 & sensitivity > 0.65)
-
-fitted.results_model1_18_24 <- ifelse(fitted.results_model1_18_24 > 0.106,1,0)
-misClasificError <- mean(as.logical(fitted.results_model1_18_24) != na.omit(test_18_24$depressed))
-print(paste('Accuracy',1-misClasificError))
-
-conf_table <- table(predicted = as.logical(fitted.results_model1_18_24), 
-                    actual = test_18_24$depressed)
-confus_matrix <- caret::confusionMatrix(conf_table, positive = "TRUE")#Huge probelem with specificity
-confus_matrix
-caret::sensitivity(confus_matrix)
-
-
-glm <- glmboost(depressed ~ E3 + E4 + E2 + D4 + D5+ V11 + E8 + E5 + E7a + D7a , family = Binomial(link='logit'), 
-                data = train, control= boost_control(mstop = 200, nu = 0.1, trace=TRUE))
-
 ```
 
 ```{r}
