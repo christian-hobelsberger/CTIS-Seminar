@@ -1,17 +1,23 @@
-# CTIS Seminar
+# CTIS mental health
+![Logo](shiny/ctis-app/www/icon.png)
+## Our findings and remarks
+(Insert snippets from discussion here
+## Paper Link
+[Paperlink]
+## Shiny App Link
+[Applink]
 
-## Table of Contents
-- [CTIS Seminar](#ctis-seminar)
-  * [Table of Contents](#table-of-contents)
-  * [Introduction](#introduction)
-  * [Findings](#findings)
-  * [Remarks](#remarks)
-  * [Credits](#credits)
+## Acknowledgements
 
-## Introduction
 
-## Findings
+## How to contribute
 
-## Remarks
 
-## Credits
+## Authors
+
+- [@christian-hobelsberger](https://www.github.com/christian-hobelsberger)
+- [@MaxMLang](https://www.github.com/MaxMLang)
+- @elisa-shima
+
+
+
