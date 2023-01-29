@@ -31,8 +31,8 @@ The age variable seems to have an tremendous impact on the mental health. We obs
 [Applink]
 
 ## Acknowledgements
-- [Frauke Kreuter](https://www.soda.statistik.uni-muenchen.de/people/professors/kreuter1/index.html)
-- [Carolin Haensch](https://www.soda.statistik.uni-muenchen.de/people/employees/haensch/index.html) 
+- [Prof. Dr. Frauke Kreuter](https://www.soda.statistik.uni-muenchen.de/people/professors/kreuter1/index.html)
+- [Dr. Carolin Haensch](https://www.soda.statistik.uni-muenchen.de/people/employees/haensch/index.html) 
 - [University of Maryland Global CTIS](https://covidmap.umd.edu/)
 - [Our world in data (Policy Responses)](https://ourworldindata.org/policy-responses-covid)
 
