@@ -1,5 +1,5 @@
 # CTIS mental health
-![Logo](shiny/ctis-app/www/icon.png)
+![Logo](shiny/ctis-app/www/icon.png| width=50)
 ## Our findings and remarks
 (Insert snippets from discussion here
 ## Paper Link
