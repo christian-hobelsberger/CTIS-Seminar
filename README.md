@@ -16,7 +16,7 @@
 - [University of Maryland Global CTIS](https://covidmap.umd.edu/)
 
 ## How to contribute
-Clone this repository by calling the command below or by using e.g the R Studio GIT IDE.
+Clone (or fork) this repository by calling the command below or by using e.g the R Studio GIT IDE.
 ```
 git clone https://github.com/christian-hobelsberger/CTIS-Seminar.git
 ```
