@@ -33,7 +33,7 @@ We then observe how all variables are relevant to the regression model, with the
 
 ## Acknowledgements
 - [Prof. Dr. Frauke Kreuter](https://www.soda.statistik.uni-muenchen.de/people/professors/kreuter1/index.html)
-- [Dr. Carolin Haensch](https://www.soda.statistik.uni-muenchen.de/people/employees/haensch/index.html) 
+- [Dr. Carolina Haensch](https://www.soda.statistik.uni-muenchen.de/people/employees/haensch/index.html) 
 - [University of Maryland Global CTIS](https://covidmap.umd.edu/)
 - [Our world in data (Policy Responses)](https://ourworldindata.org/policy-responses-covid)
 
