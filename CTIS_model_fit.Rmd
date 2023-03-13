@@ -421,134 +421,14 @@ gg_streu_log10
 
 ```
 
-```{r}
-# Model with regularisierung
-## training (80%) und testdatensatz (20%)
-
-data_ctis_model <- data_CTIS %>% dplyr::select(anxious_7d, depressed_7d, finance,
-                                               food_security, worried_become_ill)
-n <- nrow(data_ctis_model)
-n
-p <- ncol(data_ctis_model) - 1
-p
-
-set.seed(123)
-ind_train <- sample(x = 1:n, size = ceiling(0.8 * n))
-set_train <- data_ctis_model[ind_train,] ## dataset
-ind_test <- setdiff(x = 1:n, ind_train)
-set_test <- data_ctis_model[ind_test, ] ## dataset
-
-## remove nas in set_train
-set_train <- set_train %>% drop_na()
-
-## unpenalized model: everything significant
-model_unpenalized <- lm(formula = anxious_7d ~ finance + food_security +
-                   worried_become_ill, data = set_train)
-
-summary(model_unpenalized)
-
-# Ridge-Regularisierung:
-model_ridge <- glmnet(x = as.matrix(set_train[, -(p + 1)]), y = set_train$anxious_7d,
-alpha = 0)
-summary(model_ridge)
-
-
-# LASSO-Regularisierung:
-model_lasso <- glmnet(x = as.matrix(set_train[, -(p + 1)]), y = set_train$anxious_7d,
-alpha = 1)
-summary(model_lasso)
-
-# Best λ:
-lambda_ridge <- cv.glmnet(x = data.matrix(set_train[, -(p + 1)]),
-y = set_train$anxious_7d, alpha = 0)$lambda.min
-
-lambda_ridge
-
-lambda_lasso <- cv.glmnet(x = data.matrix(set_train[, -(p + 1)]), y = set_train$anxious_7d, alpha = 1)$lambda.min
-
-lambda_lasso
-
-# Anpassung der Modelle an Trainingsdaten:
-y_train <- set_train$anxious_7d
-predict_train <- matrix(data = 0, nrow = nrow(set_train), ncol = 3)
-
-# doesn't compile
-# predict_train[, 1] <- predict(object = model_unpenalized,
-# newdata = set_train[, -(p + 1)])
-
-# it compiles
-predict_train[, 2] <- predict.glmnet(object = model_ridge,
-newx = data.matrix(set_train[, -(p+1)]),
-s = lambda_ridge)
-
-predict_train[, 3] <- predict.glmnet(object = model_lasso,
-newx = data.matrix(set_train[, -(p+1)]),
-s = lambda_lasso)
-
-MSE_train <- rep(x = 0, length.out = 3)
-
-for (i in 1:3) {
-MSE_train[i] = mean((y_train - predict_train[, i])^2)
-}
-MSE_train
-
-format(MSE_train, scientific = FALSE)
-# model Lasso best one (lowest MSE)
-
-## Prädiktion auf Testdaten:
-# drop nas in set_test
-set_test <- set_test %>% drop_na()
-
-y_test <- set_test$anxious_7d
-predict_test <- matrix(data = 0, nrow = nrow(set_test), ncol = 3)
- 
-# does not compile
-# predict_test[, 1] <- predict(object = model_unpenalized, newdata = set_test[, -(p+1)]) 
-
-predict_test[, 2] <- predict.glmnet(object = model_ridge,
-newx = data.matrix(set_test[, -(p+1)]),
-s = lambda_ridge)
-predict_test[, 3] <- predict.glmnet(object = model_lasso,
-newx = data.matrix(set_test[, -(p+1)]), s = lambda_lasso)
-MSE_test <- rep(x = 0, length.out = 3)
-for (i in 1:3) {
-MSE_test[i] = mean((y_test - predict_test[, i])^2)
-}
-MSE_test
-
-format(MSE_test, scientific = FALSE)
-## lasso best one
-
-## Model with lasso regularisierung (alle Variablen ausser anxious nicht 
-# in das Modell einbezogen) -> nochmal überprüfen
-coef_lasso <- model_lasso$beta[, which(model_lasso$lambda == lambda_lasso)]
-coef_lasso
-
-# Stepwise Selection per AIC
-coef_AIC <- stepAIC(object = model_unpenalized,
-scope = list(upper = ~ ., lower = ~ 1), direction = "both")
-
-coef_AIC
-
-# Visualization Coefficients
-par(mfrow = c(2, 1))
-# Ridge-Regularisierung:
-plot_glmnet(x = model_ridge, label = TRUE, xvar = "lambda")
-title(main = "Ridge", line = 3)
-# LASSO-Regularisierung:
-plot_glmnet(x = model_lasso, label = TRUE, xvar = "lambda")
-title(main = "LASSO", line = 3)
-```
-
-
 ```{r Regularisierung with policy data}
 # Model with regularisierung - policy data
 # only metric variables
 ## training (80%) und testdatensatz (20%)
 
-data_ctis_policy_model <- data_CTIS_policy %>% dplyr::select(anxious_7d, depressed_7d, finance,  food_security, worried_become_ill, retail_and_recreation, 
-                     grocery_and_pharmacy, residential, transit_stations, 
-                     parks, workplaces)
+data_ctis_policy_model <- data_CTIS_policy %>% drop_na() %>% dplyr::select(anxious_7d, finance,  food_security, worried_become_ill, retail_and_recreation, grocery_and_pharmacy, residential, transit_stations, parks, workplaces)
+
+head(data_ctis_policy_model)
 
 n_policy <- nrow(data_ctis_policy_model)
 n_policy
@@ -573,41 +453,53 @@ model_unpenalized_policy <- lm(formula = anxious_7d ~ finance + food_security +
 summary(model_unpenalized_policy)
 
 # Ridge-Regularisierung:
-model_ridge_policy <- glmnet(x = as.matrix(set_train_policy[, -(p_policy + 1)]), y = set_train_policy$anxious_7d,
+model_ridge_policy <- glmnet(x = as.matrix(set_train_policy[, 2:10]), y = set_train_policy$anxious_7d,
 alpha = 0)
 summary(model_ridge_policy)
 
 
 # LASSO-Regularisierung:
-model_lasso_policy <- glmnet(x = as.matrix(set_train_policy[, -(p_policy + 1)]), y = set_train_policy$anxious_7d,
+model_lasso_policy <- glmnet(x = as.matrix(set_train_policy[, 2:10]), y = set_train_policy$anxious_7d,
 alpha = 1)
 summary(model_lasso_policy)
 
+# lasso coefficients path
+plot(model_lasso_policy, label = T)
+
 # Best λ:
-lambda_ridge_policy <- cv.glmnet(x = data.matrix(set_train_policy[, -(p_policy + 1)]),
+lambda_ridge_policy <- cv.glmnet(x = data.matrix(set_train_policy[, 2:10]),
 y = set_train_policy$anxious_7d, alpha = 0)$lambda.min
 
 lambda_ridge_policy
 
-lambda_lasso_policy <- cv.glmnet(x = data.matrix(set_train_policy[, -(p_policy + 1)]), y = set_train_policy$anxious_7d, alpha = 1)$lambda.min
+lambda_lasso_policy <- cv.glmnet(x = data.matrix(set_train_policy[, 2:10]), y = set_train_policy$anxious_7d, alpha = 1)$lambda.min
 
 lambda_lasso_policy
+
+
+## plot mse for different lambdas 
+jpeg(file="Plots/Elisa/mse_lambda_lasso.jpeg",
+width = 465, height = 225, units='mm', res = 300)
+plot(cv.glmnet(x = data.matrix(set_train_policy[, 2:10]), y = set_train_policy$anxious_7d, alpha = 1), cex.lab = 1.5, cex.axis = 1.5, 
+     cex.main = 1, cex.sub = 1.5)
+# ggsave("Plots/Elisa/Model/mse_lambda_lasso.png", width = 7, height = 3)
+dev.off()
 
 # Anpassung der Modelle an Trainingsdaten:
 y_train_policy <- set_train_policy$anxious_7d
 predict_train_policy <- matrix(data = 0, nrow = nrow(set_train_policy), ncol = 3)
 
-# doesn't compile
-# predict_train_policy[, 1] <- predict(object = model_unpenalized,
-# newdata = set_train_policy[, -(p_policy + 1)])
 
-# it compiles
+predict_train_policy[, 1] <- predict(object = model_unpenalized,
+newdata = set_train_policy[, 2:10])
+
+
 predict_train_policy[, 2] <- predict.glmnet(object = model_ridge_policy,
-newx = data.matrix(set_train_policy[, -(p_policy+1)]),
+newx = data.matrix(set_train_policy[,  2:10]),
 s = lambda_ridge_policy)
 
 predict_train_policy[, 3] <- predict.glmnet(object = model_lasso_policy,
-newx = data.matrix(set_train_policy[, -(p_policy+1)]),
+newx = data.matrix(set_train_policy[,  2:10]),
 s = lambda_lasso_policy)
 
 MSE_train_policy <- rep(x = 0, length.out = 3)
@@ -627,14 +519,14 @@ set_test_policy <- set_test_policy %>% drop_na()
 y_test_policy <- set_test_policy$anxious_7d
 predict_test_policy <- matrix(data = 0, nrow = nrow(set_test_policy), ncol = 3)
  
-# does not compile
-# predict_test_policy[, 1] <- predict(object = model_unpenalized, newdata = set_test_policy[, -(p_policy+1)]) 
+
+predict_test_policy[, 1] <- predict(object = model_unpenalized, newdata = set_test_policy[,  2:10]) 
 
 predict_test_policy[, 2] <- predict.glmnet(object = model_ridge_policy,
-newx = data.matrix(set_test_policy[, -(p_policy+1)]),
+newx = data.matrix(set_test_policy[,  2:10]),
 s = lambda_ridge_policy)
 predict_test_policy[, 3] <- predict.glmnet(object = model_lasso_policy,
-newx = data.matrix(set_test_policy[, -(p_policy+1)]), s = lambda_lasso_policy)
+newx = data.matrix(set_test_policy[,  2:10]), s = lambda_lasso_policy)
 MSE_test_policy <- rep(x = 0, length.out = 3)
 for (i in 1:3) {
 MSE_test_policy[i] = mean((y_test_policy - predict_test_policy[, i])^2)
@@ -644,8 +536,7 @@ MSE_test_policy
 format(MSE_test_policy, scientific = FALSE)
 ## lasso best one
 
-## Model with lasso regularisierung (alle Variablen ausser anxious nicht 
-# in das Modell einbezogen) -> nochmal überprüfen
+## Model with lasso regularisierung
 coef_lasso_policy <- model_lasso_policy$beta[, which(model_lasso_policy$lambda == lambda_lasso_policy)]
 coef_lasso_policy
 
@@ -655,15 +546,29 @@ scope = list(upper = ~ ., lower = ~ 1), direction = "both")
 
 coef_AIC_policy
 
-# Visualization Coefficients
-par(mfrow = c(2, 1))
-# Ridge-Regularisierung:
+
+# Ridge-Regularisierung
+# Coefficients path plot
 plot_glmnet(x = model_ridge_policy, label = TRUE, xvar = "lambda")
 title(main = "Ridge", line = 3)
-# LASSO-Regularisierung:
+
+# LASSO-Regularisierung
+# Coefficients path plot
 plot_glmnet(x = model_lasso_policy, label = TRUE, xvar = "lambda")
-title(main = "LASSO", line = 3)
-par(mfrow = c(1,1))
+ggsave("Plots/Elisa/Model/lasso-path-coeff.png", width = 7, 
+       height = 3)
+
+
+coef_frame <- data.frame(coef_lasso_policy = names(coef_lasso_policy),
+                        value = coef_lasso_policy)
+
+# Forest plot: coefficients Lasso model
+ggplot(coef_frame, aes(x=coef_lasso_policy, y=value))  + 
+  coord_flip()  + 
+  geom_point(colour = "red", size = 3) +
+  theme(axis.title.y=element_blank(), axis.text =
+       element_text(size = 12)) + xlab("Coefficients") 
+ggsave("Plots/Elisa/Model/forest_plot_new.png", width = 7, height = 3)
 ```
 
 
