@@ -6,7 +6,7 @@ output:
   html_document: default
 ---
 ```{r setup, include=FALSE}
-# CTIS_micro <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
+# CTIS_micro <- readRDS("data/protected_data/CTIS_microdata_cleanV4.RDS")
 # 
 # # E4 = Age, E3 = Gender, E8 = Education, E2 = Where do you live, V11 = Pregnant
 # 
@@ -17,18 +17,18 @@ output:
 ----------------------------------------------------
            Variables                 N         %    
 -------------------------------- ---------- --------
- **During the past 7 days, how    45318361     NA   
+ **During the past 7 days, how    47250595     NA   
  often did you feel so nervous                      
   that nothing could calm you                       
             down? (D1)**                                 
 
-      *None of the time*          26878522   59.31  
+      *None of the time*          28035141   59.33  
                       
 
-*A little of the time*            9548836    21.07  
+*A little of the time*            9927897    21.01  
                                  
 
-*Some of the time*                6122466    13.51  
+*Some of the time*                6380199    13.5  
                        
 
 *Most of the time*                1972948    4.354  
@@ -103,4 +103,138 @@ University completed*
 
 *Village or rural area*           8461760     15.8                           
                      
+----------------------------------------------------
+
+----------------------------------------------------
+           Variables                 N         %    
+-------------------------------- ---------- --------
+ **During the past 7 days, how    47250595     NA   
+ often did you feel so nervous                      
+  that nothing could calm you                       
+            down?**                                 
+
+ **During the past 7 days, how    28035141   59.33  
+ often did you feel so nervous                      
+  that nothing could calm you                       
+  down?**: *None of the time*                       
+
+ **During the past 7 days, how    9927897    21.01  
+ often did you feel so nervous                      
+  that nothing could calm you                       
+   down?**: *A little of the                        
+             time*                                  
+
+ **During the past 7 days, how    6380199     13.5  
+ often did you feel so nervous                      
+  that nothing could calm you                       
+  down?**: *Some of the time*                       
+
+ **During the past 7 days, how    2058962    4.358  
+ often did you feel so nervous                      
+  that nothing could calm you                       
+  down?**: *Most of the time*                       
+
+ **During the past 7 days, how     848396    1.796  
+ often did you feel so nervous                      
+  that nothing could calm you                       
+    down?**: *All the time*                         
+
+     **What is your age?**        57338241     NA   
+
+ **What is your age?**: *18-24*   7113011    12.41  
+
+ **What is your age?**: *25-34*   1.3e+07    22.67  
+
+ **What is your age?**: *35-44*   12136945   21.17  
+
+ **What is your age?**: *45-54*   10590623   18.47  
+
+ **What is your age?**: *55-64*   8507331    14.84  
+
+ **What is your age?**: *65-74*   4741115    8.269  
+
+  **What is your age?**: *75+*    1248577    2.178  
+
+    **What is your gender?**      57101022     NA   
+
+   **What is your gender?**:      28664350    50.2  
+             *Male*                                 
+
+   **What is your gender?**:      27800762   48.69  
+            *Female*                                
+
+   **What is your gender?**:       149937    0.2626 
+            *Other*                                 
+
+   **What is your gender?**:       485973    0.8511 
+     *Prefer not to answer*                         
+
+ **What is the highest level of   24616927     NA   
+    education that you have                         
+          completed?**                              
+
+ **What is the highest level of    107969    0.4386 
+    education that you have                         
+    completed?**: *No formal                        
+           schooling*                               
+
+ **What is the highest level of    229978    0.9342 
+    education that you have                         
+    completed?**: *Less than                        
+        primary school*                             
+
+ **What is the highest level of    966649    3.927  
+    education that you have                         
+ completed?**: *Primary school                      
+           completed*                               
+
+ **What is the highest level of   3137590    12.75  
+    education that you have                         
+    completed?**: *Secondary                        
+        school complete*                            
+
+ **What is the highest level of   6577802    26.72  
+    education that you have                         
+ completed?**: *High school (or                     
+     equivalent) completed*                         
+
+ **What is the highest level of   10212992   41.49  
+    education that you have                         
+    completed?**: *College/                         
+   pre-university/ University                       
+           completed*                               
+
+ **What is the highest level of   3383947    13.75  
+    education that you have                         
+   completed?**: *University                        
+      post-graduate degree                          
+           completed*                               
+
+     **Which of these best        55973791     NA   
+  describes the area where you                      
+    are currently staying?**                        
+
+     **Which of these best        34172689   61.05  
+  describes the area where you                      
+   are currently staying?**:                        
+             *City*                                 
+
+     **Which of these best        12963944   23.16  
+  describes the area where you                      
+   are currently staying?**:                        
+             *Town*                                 
+
+     **Which of these best        8837158    15.79  
+  describes the area where you                      
+   are currently staying?**:                        
+    *Village or rural area*                         
+
+      **Are you currently         10843679     NA   
+          pregnant?**                               
+
+      **Are you currently          399289    3.682  
+       pregnant?**: *Yes*                           
+
+      **Are you currently         10444390   96.32  
+       pregnant?**: *No*                            
 ----------------------------------------------------
