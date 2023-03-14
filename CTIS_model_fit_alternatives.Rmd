@@ -1,0 +1,834 @@
+---
+title: "CTIS_Model Alternatives"
+output: html_document
+---
+
+This document contains a verity of modelling approaches.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(include = FALSE)
+library(tidyverse)
+library(party)
+library(rpart)
+library(caret)
+library(rpart.plot)
+library(mboost)
+library(MLmetrics)
+library(pROC)
+library(corrplot)
+library(olsrr)
+library(glmnet)
+library(effects)
+library(arsenal)
+library(mboost)
+library(MASS)
+library(effects)
+library(sjPlot)
+library(visreg)
+library(glmnet)
+library(plotmo)
+library(lme4)
+library(cAIC4)
+library(splines)
+```
+
+```{r include=FALSE}
+CTIS_micro <- readRDS("~/CTIS-Seminar/data/protected_data/CTIS_microdata_cleanV3.RDS")
+
+CTIS_macro <- readRDS("~/CTIS-Seminar/data/data_CTIS_policy.RDS")
+set.seed(2507)
+CTIS_micro$anxious <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
+
+
+CTIS_micro$depressed <- ifelse(CTIS_micro$D2 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
+CTIS_micro$V11[CTIS_micro$E3 %in% "Male" & is.na(CTIS_micro$V11)] <- "No"
+CTIS_micro$E5 <- as.numeric(CTIS_micro$E5)
+CTIS_micro$E7a <- as.numeric(CTIS_micro$E7a)
+
+```
+
+### Setup for microdata model
+```{r}
+# Setup for microdata model
+CTIS_micro <- readRDS("data/protected_data/CTIS_microdata_cleanV4.RDS")
+set.seed(2507)
+CTIS_micro$anxious <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
+
+CTIS_micro$depressed <- ifelse(CTIS_micro$D2 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
+CTIS_micro$V11[CTIS_micro$E3 %in% "Male" & is.na(CTIS_micro$V11)] <- "No"
+CTIS_micro$E5 <- as.numeric(CTIS_micro$E5)
+CTIS_micro$E7a <- as.numeric(CTIS_micro$E7a)
+
+```
+
+# Microdata logistic regression model
+```{r}
+# Set reference categories
+CTIS_micro$E4 <- relevel(CTIS_micro$E4, ref = "45-54")
+CTIS_micro$E3 <- relevel(CTIS_micro$E3, ref = "Male")
+CTIS_micro$E8 <- relevel(CTIS_micro$E8, ref = "Secondary school complete")
+CTIS_micro$E2 <- relevel(CTIS_micro$E2, ref = "Town")
+
+# Fit model
+
+# E4 = Age, E3 = Gender, E8 = Education, E2 = Where do you live
+model_glm <- glm(anxious ~ E4 + E3 + E8 + E2,family=binomial(link='logit'), data=CTIS_micro)
+summary(model_glm)
+exp(model_glm$coefficients)
+
+# Forestplot
+all.models <- list()
+all.models[[1]] <- model_glm
+
+plot_models(all.models)
+ggsave("Plots/Chris/models/model_glm.png", width = 12, height = 9)
+```
+
+```{r}
+head(CTIS_macro)
+str(CTIS_macro)
+```
+# Check correlation before regression
+```{r}
+# Get numeric data
+nums <- unlist(lapply(CTIS_macro, is.numeric), use.names = FALSE)
+
+
+res <- cor(CTIS_macro[ , nums], use = "complete.obs")
+round(res, 2)
+
+corrplot(res, method="color")
+```
+
+
+# Global Mean
+```{r}
+CTIS_macro %>% 
+  group_by(data.survey_date) %>% 
+  summarise(global_mean = mean(anxious_7d)) %>% 
+  ggplot(aes(x = data.survey_date, y = global_mean))+
+  geom_line()
+```
+
+# Continent Mean
+```{r}
+CTIS_macro %>% 
+  group_by(data.survey_date, continent) %>% 
+  summarise(continent_mean = mean(anxious_7d)) %>% 
+  ggplot(aes(x = data.survey_date, y = continent_mean))+
+  geom_line()+
+  facet_wrap(vars(continent))
+```
+# Logistic regression
+
+## No split log. regression
+```{r}
+CTIS_micro$E4 <- relevel(CTIS_micro$E4, ref = "45-54")
+CTIS_micro$E3 <- relevel(CTIS_micro$E3, ref = "Male")
+CTIS_micro$E8 <- relevel(CTIS_micro$E8, ref = "Secondary school complete")
+CTIS_micro$E2 <- relevel(CTIS_micro$E2, ref = "Town")
+
+# E4 = Age, E3 = Gender, E8 = Education, E2 = Where do you live
+model_glm <- glm(anxious ~ E4 + E3 + E8 + E2,family=binomial(link='logit'), data=CTIS_micro)
+summary(model_glm)
+exp(model_glm$coefficients)
+
+# Alternativly fit 3 different models:
+
+# E4 = Age, E3 = Gender, E8 = Education
+model_1 <- glm(depressed ~ E4 + E3 + E8,family=binomial(link='logit'), data=CTIS_micro)
+summary(model_1)
+
+# E4 = Age, E3 = Gender, E8 = Education, E2 = Where do you live
+model_2 <- glm(depressed ~ E4 + E3 + E8 + E2,family=binomial(link='logit'), data=CTIS_micro)
+summary(model_2)
+
+# E4 = Age, E3 = Gender, E8 = Education, E2 = Where do you live, V11 = Pregnant
+model_3 <- glm(depressed ~ E4 + E3 + E8 + E2 + V11,family=binomial(link='logit'), data=CTIS_micro)
+summary(model_3)
+```
+
+
+## Log. regression with split
+```{r}
+set.seed(2507)
+CTIS_micro$worried <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
+
+
+CTIS_micro$depressed <- ifelse(CTIS_micro$D2 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
+CTIS_micro$V11[CTIS_micro$E3 %in% "Male" & is.na(CTIS_micro$V11)] <- "No"
+CTIS_micro$E5 <- as.numeric(CTIS_micro$E5)
+CTIS_micro$E7a <- as.numeric(CTIS_micro$E7a)
+CTIS_micro$country_agg <- as.factor(CTIS_micro$country_agg)
+CTIS_micro$country_region <- as.factor(CTIS_micro$country_region)
+split1<- sample(c(rep(0, 0.7 * nrow(CTIS_micro)), rep(1, 0.3 * nrow(CTIS_micro))))
+train <- CTIS_micro[split1 == 0, ]
+test <- CTIS_micro[split1 == 1,]
+minority_class_size <- sum(train$depressed)
+train_downsamp <- train %>% 
+  group_by(depressed) %>% 
+  sample_n(minority_class_size) %>% 
+  ungroup()
+```
+# Young people regression
+```{r}
+CTIS_micro_18_24 <- CTIS_micro %>% filter(E4 %in% c("18-24", "25-34"))
+CTIS_micro_18_24$E5 <- as.numeric(CTIS_micro_18_24$E5)
+CTIS_micro_18_24$E7a <- as.numeric(CTIS_micro_18_24$E7a)
+split2 <- sample <- sample(c(TRUE, FALSE), nrow(CTIS_micro_18_24), replace=TRUE, prob=c(0.7,0.3))
+train_18_24 <- CTIS_micro_18_24[split2, ]
+test_18_24 <- CTIS_micro_18_24[!split2,]
+model_1_18_24 <- glm(depressed ~ E3 + E2 + D4 + D5 + V11 + E8 + E5 + E7a + D7a , family = binomial(link = 'logit'), data = train_18_24)
+
+model_2_18_24 <- glm(depressed ~ E3 + E4 + E2 + D4 + D5+ V11 , family = binomial(link = 'logit'), data = train_18_24)
+
+test_18_24 <- na.omit(test_18_24[c("depressed", "E3", "E4", "E2", "D4", "D5", "V11")])
+fitted.results_model1_18_24 <- predict(model_2_18_24, newdata= test_18_24, type='response')
+test_18_24 <- na.omit(test_18_24)
+fitted.results_model1_18_24 <- predict(model_1_18_24, newdata= test_18_24[c("E3", "E4", "E5", "E7a", "E2", "D7a", "V11", "E8", "worried", "D7a", "depressed", "D4", "D5")], type='response')
+
+test_roc <- roc(test_18_24$depressed ~ fitted.results_model1_18_24, plot = TRUE, print.auc = TRUE)
+coords(test_roc) %>% filter(specificity > 0.62 & sensitivity > 0.65)
+
+fitted.results_model1_18_24 <- ifelse(fitted.results_model1_18_24 > 0.106,1,0)
+misClasificError <- mean(as.logical(fitted.results_model1_18_24) != na.omit(test_18_24$depressed))
+print(paste('Accuracy',1-misClasificError))
+
+conf_table <- table(predicted = as.logical(fitted.results_model1_18_24), 
+                    actual = test_18_24$depressed)
+misClasificError <- mean(as.logical(fitted.results_model1_18_24) != na.omit(test_18_24$worried))
+print(paste('Accuracy',1-misClasificError))
+
+conf_table <- table(predicted = as.logical(fitted.results_model1_18_24), 
+                    actual = test$depressed)
+confus_matrix <- caret::confusionMatrix(conf_table, positive = "TRUE")#Huge probelem with specificity
+confus_matrix
+caret::sensitivity(confus_matrix)
+```
+
+```{r}
+# E3 = Gender, E4 = Age, E2 = Where do you live, V11 = Pregnant, E8 = Education 
+model_1 <- glm(depressed ~ E3 + E4 + E2 + D4 + D5 + V11 + E8 + E5 + E7a + D7a ,family=binomial(link='logit'), data=train)
+model_1 <- glm(depressed ~ E3 + E4 + E2 + D4 + D5+ V11 + E8 + E5 + E7a + D7a ,family=binomial(link='logit'), data=train)
+model_1_downsamp <- glm(depressed ~ E3 + E4 + E2 + D4 + D5+ V11 + E8 + E5 + E7a + D7a , family=binomial(link='logit'), data= train_downsamp)
+model_2 <- glm(worried ~ E3 + E4 + E2 + V11 ,family = binomial(link='logit'), data=train)
+model_3 <- glm(worried ~ E4 + E8 + E3 + D7a ,family = binomial(link='logit'), data=train)
+```
+
+```{r}
+test <- na.omit(test)
+#model_1 <- model_1_downsamp
+#fitted.results_model1 <- fitted.results_model1_downsamp
+fitted.results_model1 <- predict(model_1, newdata= test[c("E3", "E4", "E2", "E5", "D4", "D5", "V11", "E8", "worried", "D7a", "E7a", "depressed")], type='response')
+fitted.results_model1_downsamp <- predict(model_1_downsamp, newdata= test[c("E3", "E4", "E2", "E5", "D4", "D5", "V11", "E8", "worried", "D7a", "E7a", "depressed")], type='response')
+
+fitted.results_model2 <- predict(model_2, newdata= test[c("E3", "E4", "E2", "V11", "E8", "worried", "D7a")], type='response')
+fitted.results_model3 <- predict(model_3, newdata= test[c("E3", "E4", "E2", "V11", "E8", "worried", "D7a")], type='response')
+```
+# Important note for the standard model 1 with poor prediction value
+Even though the prediction value is poor it still proves that young people had severe problems with mental helth issues. Check the Odds Rations like in the Chunk below:
+```{r}
+exp(model_1$coefficients) # Gender and Age look like risk factors, other worried variables obviously also very high
+```
+
+# Model 1 diagnostics
+
+```{r}
+library(pROC)
+test_roc <- roc(test$depressed ~ fitted.results_model1, plot = TRUE, print.auc = TRUE)
+test_roc <- roc(test$depressed ~ fitted.results_model1_downsamp, plot = TRUE, print.auc = TRUE)
+
+coords(test_roc)
+```
+```{r}
+fitted.results_model1 <- ifelse(fitted.results_model1_downsamp > 0.5,1,0)
+misClasificError <- mean(as.logical(fitted.results_model1) != na.omit(test$worried))
+print(paste('Accuracy',1-misClasificError))
+F1_Score(test$worried, as.logical(fitted.results_model1))
+```
+# Confusion Matrix & Sens/Spec
+```{r}
+conf_table <- table(predicted = as.logical(fitted.results_model1), 
+                    actual = test$depressed)
+confus_matrix <- caret::confusionMatrix(conf_table, positive = "TRUE")#Huge probelem with specificity
+confus_matrix
+caret::sensitivity(confus_matrix)
+```
+
+
+# Model 2 diagnostics
+```{r}
+fitted.results_model2 <- ifelse(fitted.results_model2 > 0.5,1,0)
+misClasificError <- mean(as.logical(fitted.results_model2) != test$worried)
+print(paste('Accuracy',1-misClasificError))
+F1_Score(test$worried, as.logical(fitted.results_model2))
+```
+# Model 3 diagnostics
+```{r}
+fitted.results_model3 <- ifelse(fitted.results_model3 > 0.5,1,0)
+misClasificError <- mean(as.logical(fitted.results_model3) != test$worried)
+print(paste('Accuracy',1-misClasificError))
+F1_Score(test$worried, as.logical(fitted.results_model3))
+```
+
+# Forest Plot
+```{r}
+all.models <- list()
+all.models[[1]] <- model_glm
+
+plot_models(all.models)
+ggsave("Plots/Chris/models/model_glm.png", width = 12, height = 9)
+
+# Alternatively plot the 3 different models:
+
+all.models <- list()
+
+all.models[[1]] <- model_1
+all.models[[2]] <- model_2
+all.models[[3]] <- model_3
+
+plot_models(all.models, legend.title = "Model", m.labels = c("Model 1", "Model 2", "Model 3"))
+ggsave("Plots/Chris/models/lin_reg_forestplot_all_models.png", width = 12, height = 9)
+
+plot_model(model_1, ci_method = "wald")
+ggsave("Plots/Chris/models/lin_reg_forestplot_model1.png", width = 12, height = 9)
+
+plot_model(model_2, ci_method = "wald")
+ggsave("Plots/Chris/models/lin_reg_forestplot_model2.png", width = 12, height = 9)
+
+plot_model(model_3, ci_method = "wald")
+ggsave("Plots/Chris/models/lin_reg_forestplot_model3.png", width = 12, height = 9)
+```
+# CART
+```{r}
+library(rpart)
+tree <- rpart::rpart(depressed ~ E3 + E4 + E2 + D4 + D5+ V11 + E8 + E5 + E7a + D7a , data = train_downsamp)
+
+```
+```{r}
+pred = predict(tree, newdata = test[c("E3", "E4", "E2", "E5", "E7a", "D7a", "V11", "E8", "worried", "D7a", "country_agg", "depressed")])
+tree_roc <- roc(test$depressed ~ pred, plot = TRUE, print.auc = TRUE)
+```
+
+## Elisa
+```{r}
+head(data_CTIS)
+
+## model with not transformed variables
+model_full <- lm(formula = anxious_7d ~ finance + food_security +
+                   worried_become_ill, data = data_CTIS)
+summary(model_full)
+
+## graphische visualisierung - dichtekurven 
+ggplot(data = gather(data_CTIS, variable, value, anxious_7d, 
+                     finance:worried_become_ill),
+mapping = aes(x = value)) +
+geom_density(aes()) +
+facet_wrap(facets = ~variable, scales = "free")
+
+
+## anxious and finance
+ggplot(data = data_CTIS, mapping = aes(y = anxious_7d, x = finance)) +  
+  geom_point(alpha = 0.1) +
+geom_smooth(method = "lm") 
+
+## anxious and food security
+ggplot(data = data_CTIS, mapping = aes(y = anxious_7d, x = food_security)) +  
+  geom_point(alpha = 0.1) +
+geom_smooth(method = "lm") 
+
+## anxious and finance
+ggplot(data = data_CTIS, mapping = aes(y = anxious_7d,
+                                       x = worried_become_ill)) +  
+  geom_point(alpha = 0.1) +
+geom_smooth(method = "lm") 
+
+
+## w/o nas
+par(mfrow = c(2, 2))
+visreg(fit = model_full, type = "conditional",
+ylim = range(data_CTIS$anxious_7d, na.rm = TRUE))
+
+# all effects
+plot(allEffects(model_full), ylim = range(data_CTIS$anxious_7d, na.rm = TRUE))
+
+```
+
+```{r}
+## Fit model with transformed variables
+data_CTIS_log <- data_CTIS %>%
+mutate(log10.anxious7d = log10(anxious_7d), log10.finance = log10(finance), 
+       log10.food_security = log10(food_security), log10.worried_become_ill = 
+         log10(worried_become_ill))
+head(data_CTIS_log)
+
+## plot - only for anxious 7d and finance
+# not transformed
+gg_streu <- ggplot(data = data_CTIS_log,
+mapping = aes(x = finance, y = anxious_7d, label = data.country)) +
+geom_point() + xlab("Finance") + ylab("Anxious 7d") +
+geom_text(mapping = aes(label = ifelse(test = finance >= sort(finance,
+decreasing = TRUE)[2] |
+anxious_7d >= sort(anxious_7d,
+decreasing=TRUE)[2],
+yes = as.character(data.country), no = "")),
+hjust = 1, vjust = 1, size = 3) + geom_smooth()
+gg_streu
+
+# transformed - log10
+gg_streu_log10 <- ggplot(data = data_CTIS_log, mapping = aes(x = log10.finance,
+          y = log10.anxious7d, label = data.country)) + geom_point() +
+  geom_text(mapping = aes(label = ifelse(test = log10.finance >= sort(log10.finance,
+decreasing = TRUE)[2] |
+log10.anxious7d >= sort(log10.anxious7d,
+decreasing=TRUE)[2],
+yes = as.character(data.country), no = "")),
+hjust = 1, vjust = 1, size = 3)
+gg_streu_log10
+
+```
+
+```{r}
+## Fit model with transformed variables (log10 +1)
+data_CTIS_log1 <- data_CTIS %>%
+mutate(log10.anxious7d = log10(anxious_7d+1), log10.finance = log10(finance+1), 
+       log10.food_security = log10(food_security+1), log10.worried_become_ill = 
+         log10(worried_become_ill+1))
+head(data_CTIS_log1)
+
+## plot - only for anxious 7d and finance
+# not transformed
+gg_streu <- ggplot(data = data_CTIS_log1,
+mapping = aes(x = finance, y = anxious_7d, label = data.country)) +
+geom_point() + xlab("Finance") + ylab("Anxious 7d") +
+geom_text(mapping = aes(label = ifelse(test = finance >= sort(finance,
+decreasing = TRUE)[2] |
+anxious_7d >= sort(anxious_7d,
+decreasing=TRUE)[2],
+yes = as.character(data.country), no = "")),
+hjust = 1, vjust = 1, size = 3)
+gg_streu
+
+# transformed - log10
+gg_streu_log10 <- ggplot(data = data_CTIS_log1, mapping = aes(x = log10.finance,
+          y = log10.anxious7d, label = data.country)) + geom_point() +
+  geom_text(mapping = aes(label = ifelse(test = log10.finance >= sort(log10.finance,
+decreasing = TRUE)[2] |
+log10.anxious7d >= sort(log10.anxious7d,
+decreasing=TRUE)[2],
+yes = as.character(data.country), no = "")),
+hjust = 1, vjust = 1, size = 3)
+gg_streu_log10
+
+```
+
+```{r Regularisierung with policy data}
+# Model with regularisierung - policy data
+# only metric variables
+## training (80%) und testdatensatz (20%)
+
+data_ctis_policy_model <- data_CTIS_policy %>% drop_na() %>% dplyr::select(anxious_7d, finance,  food_security, worried_become_ill, retail_and_recreation, grocery_and_pharmacy, residential, transit_stations, parks, workplaces)
+
+head(data_ctis_policy_model)
+
+n_policy <- nrow(data_ctis_policy_model)
+n_policy
+p_policy <- ncol(data_ctis_policy_model) - 1
+p_policy
+
+set.seed(123)
+ind_train_policy <- sample(x = 1:n, size = ceiling(0.8 * n))
+set_train_policy <- data_ctis_policy_model[ind_train_policy,] ## dataset
+ind_test_policy <- setdiff(x = 1:n, ind_train_policy)
+set_test_policy <- data_ctis_policy_model[ind_test_policy, ] ## dataset
+
+## remove nas in set_train
+set_train_policy <- set_train_policy %>% drop_na()
+
+## unpenalized model: everything significant
+model_unpenalized_policy <- lm(formula = anxious_7d ~ finance + food_security +
+                   worried_become_ill + retail_and_recreation +
+                     grocery_and_pharmacy + residential + transit_stations + 
+                     parks + workplaces, data = set_train_policy)
+
+summary(model_unpenalized_policy)
+
+# Ridge-Regularisierung:
+model_ridge_policy <- glmnet(x = as.matrix(set_train_policy[, 2:10]), y = set_train_policy$anxious_7d,
+alpha = 0)
+summary(model_ridge_policy)
+
+
+# LASSO-Regularisierung:
+model_lasso_policy <- glmnet(x = as.matrix(set_train_policy[, 2:10]), y = set_train_policy$anxious_7d,
+alpha = 1)
+summary(model_lasso_policy)
+
+# lasso coefficients path
+plot(model_lasso_policy, label = T)
+
+# Best λ:
+lambda_ridge_policy <- cv.glmnet(x = data.matrix(set_train_policy[, 2:10]),
+y = set_train_policy$anxious_7d, alpha = 0)$lambda.min
+
+lambda_ridge_policy
+
+lambda_lasso_policy <- cv.glmnet(x = data.matrix(set_train_policy[, 2:10]), y = set_train_policy$anxious_7d, alpha = 1)$lambda.min
+
+lambda_lasso_policy
+
+
+## plot mse for different lambdas 
+jpeg(file="Plots/Elisa/mse_lambda_lasso.jpeg",
+width = 465, height = 225, units='mm', res = 300)
+plot(cv.glmnet(x = data.matrix(set_train_policy[, 2:10]), y = set_train_policy$anxious_7d, alpha = 1), cex.lab = 1.5, cex.axis = 1.5, 
+     cex.main = 1, cex.sub = 1.5)
+# ggsave("Plots/Elisa/Model/mse_lambda_lasso.png", width = 7, height = 3)
+dev.off()
+
+# Anpassung der Modelle an Trainingsdaten:
+y_train_policy <- set_train_policy$anxious_7d
+predict_train_policy <- matrix(data = 0, nrow = nrow(set_train_policy), ncol = 3)
+
+
+predict_train_policy[, 1] <- predict(object = model_unpenalized,
+newdata = set_train_policy[, 2:10])
+
+
+predict_train_policy[, 2] <- predict.glmnet(object = model_ridge_policy,
+newx = data.matrix(set_train_policy[,  2:10]),
+s = lambda_ridge_policy)
+
+predict_train_policy[, 3] <- predict.glmnet(object = model_lasso_policy,
+newx = data.matrix(set_train_policy[,  2:10]),
+s = lambda_lasso_policy)
+
+MSE_train_policy <- rep(x = 0, length.out = 3)
+
+for (i in 1:3) {
+MSE_train_policy[i] = mean((y_train_policy - predict_train_policy[, i])^2)
+}
+MSE_train_policy
+
+format(MSE_train_policy, scientific = FALSE)
+# model Lasso best one (lowest MSE)
+
+## Prädiktion auf Testdaten:
+# drop nas in set_test
+set_test_policy <- set_test_policy %>% drop_na()
+
+y_test_policy <- set_test_policy$anxious_7d
+predict_test_policy <- matrix(data = 0, nrow = nrow(set_test_policy), ncol = 3)
+ 
+
+predict_test_policy[, 1] <- predict(object = model_unpenalized, newdata = set_test_policy[,  2:10]) 
+
+predict_test_policy[, 2] <- predict.glmnet(object = model_ridge_policy,
+newx = data.matrix(set_test_policy[,  2:10]),
+s = lambda_ridge_policy)
+predict_test_policy[, 3] <- predict.glmnet(object = model_lasso_policy,
+newx = data.matrix(set_test_policy[,  2:10]), s = lambda_lasso_policy)
+MSE_test_policy <- rep(x = 0, length.out = 3)
+for (i in 1:3) {
+MSE_test_policy[i] = mean((y_test_policy - predict_test_policy[, i])^2)
+}
+MSE_test_policy
+
+format(MSE_test_policy, scientific = FALSE)
+## lasso best one
+
+## Model with lasso regularisierung
+coef_lasso_policy <- model_lasso_policy$beta[, which(model_lasso_policy$lambda == lambda_lasso_policy)]
+coef_lasso_policy
+
+# Stepwise Selection per AIC
+coef_AIC_policy <- stepAIC(object = model_unpenalized_policy,
+scope = list(upper = ~ ., lower = ~ 1), direction = "both")
+
+coef_AIC_policy
+
+
+# Ridge-Regularisierung
+# Coefficients path plot
+plot_glmnet(x = model_ridge_policy, label = TRUE, xvar = "lambda")
+title(main = "Ridge", line = 3)
+
+# LASSO-Regularisierung
+# Coefficients path plot
+plot_glmnet(x = model_lasso_policy, label = TRUE, xvar = "lambda")
+ggsave("Plots/Elisa/Model/lasso-path-coeff.png", width = 7, 
+       height = 3)
+
+
+coef_frame <- data.frame(coef_lasso_policy = names(coef_lasso_policy),
+                        value = coef_lasso_policy)
+
+# Forest plot: coefficients Lasso model
+ggplot(coef_frame, aes(x=coef_lasso_policy, y=value))  + 
+  coord_flip()  + 
+  geom_point(colour = "red", size = 3) +
+  theme(axis.title.y=element_blank(), axis.text =
+       element_text(size = 12)) + xlab("Coefficients") 
+ggsave("Plots/Elisa/Model/forest_plot_new.png", width = 7, height = 3)
+```
+
+
+
+
+```{r Boosting}
+
+set.seed(123)
+
+model_boosting_default <- glmboost(anxious_7d ~ finance + food_security +
+                   worried_become_ill, data = data_CTIS, control = 
+                     boost_control(mstop = 100, nu = 0.1))
+summary(model_boosting_default)
+
+# plot
+par(mar = c(5, 5, 4, 6))
+plot(x = model_boosting_default, main = "Coefficients path")
+```
+
+```{r Boosting data policy}
+
+set.seed(123)
+
+model_boosting_default_policy <- glmboost(anxious_7d ~ finance + food_security +
+                   worried_become_ill + retail_and_recreation +
+                     grocery_and_pharmacy + residential + transit_stations + 
+                     parks + workplaces, data = data_CTIS_policy, control = 
+                     boost_control(mstop = 100, nu = 0.1))
+summary(model_boosting_default_policy)
+
+# plot
+par(mar = c(5, 5, 4, 6))
+plot(x = model_boosting_default_policy, main = "Coefficients path")
+```
+
+
+```{r Lineares gemischtes Modell}
+## not good
+
+## visualize only first 5 countries with highest anxiety level (more plots 
+# cause otherwise not good)
+data_CTIS %>% filter(data.country %in% c("Tunisia", "Lebanon")) %>% 
+ggplot(mapping = aes(x = finance, y = anxious_7d, col =
+                                         as.factor(data.country))) + 
+  geom_line() + geom_point() + theme(legend.position="bottom") + 
+  facet_grid( ~ data.country)
+
+# 2nd plot
+
+data_CTIS %>% filter(data.country %in% c("Turkey", "Algeria", 
+                                         "Egypt")) %>% 
+ggplot(mapping = aes(x = finance, y = anxious_7d, col =
+                                         as.factor(data.country))) + 
+  geom_line() + geom_point()  + 
+  facet_grid( ~ data.country)
+
+# Linear model with interaction effects
+## everything significant
+model_linear <- lm(formula = anxious_7d ~ finance + food_security +
+                     worried_become_ill + finance*food_security, data = 
+                     data_CTIS)
+
+summary(model_linear)
+
+# model with random effects
+model_ri <- lmer(formula = anxious_7d ~ finance + food_security +
+                     worried_become_ill + finance*food_security +
+                   (1| data.country), data = data_CTIS, REML = FALSE)
+summary(model_ri)
+
+standard_abweichung <- 0.02805 
+
+residual_variance <- 0.0003301
+ICC <- standard_abweichung^2 / (standard_abweichung^2 + residual_variance) 
+ICC 
+
+## 0.70 -> Anteil der durch den zufälligen Intercept erklärten Streuung, 
+# die nicht durch die festen Effekte erklärt wird, liegt bei 70%. 
+
+# Ratio test
+anova(model_ri, lmer(formula = anxious_7d ~ finance + food_security +
+                     worried_become_ill +
+                   (1| data.country), data = data_CTIS, REML = FALSE))
+
+cAIC(model_linear)
+cAIC(model_ri)
+```
+
+```{r Lineares gemischtes Modell with policy data}
+# check correlation in policy data
+cor_policy <- data_CTIS_policy %>% dplyr::select(anxious_7d, depressed_7d, worried_become_ill, finance, food_security, retail_and_recreation, 
+                                          grocery_and_pharmacy, 
+                                          residential, transit_stations, 
+                                          parks, workplaces) %>% drop_na()
+correlation_policy <- cor(cor_policy)
+correlation_policy
+
+# Only metric variables
+# Linear model with interaction effects
+## 
+model_linear_policy <- lm(formula = anxious_7d ~ finance + food_security +
+                     worried_become_ill + finance*food_security + 
+                       retail_and_recreation + grocery_and_pharmacy + 
+                       residential + transit_stations + 
+                       parks + workplaces + retail_and_recreation*grocery_and_pharmacy, data = 
+                     data_CTIS_policy)
+
+summary(model_linear_policy)
+
+# model with random effects
+model_ri_policy <- lmer(formula = anxious_7d ~ finance + food_security +
+                     worried_become_ill + finance*food_security + 
+                       retail_and_recreation + grocery_and_pharmacy + 
+                       residential + transit_stations + 
+                       parks + workplaces + retail_and_recreation*grocery_and_pharmacy +
+                   (1| data.country), data = data_CTIS_policy, REML = FALSE)
+summary(model_ri_policy)
+
+standard_abweichung <- 0.02506
+
+residual_variance <- 0.0002741
+ICC <- standard_abweichung^2 / (standard_abweichung^2 + residual_variance) 
+ICC  
+
+## 0.6961546 -> Anteil der durch den zufälligen Intercept erklärten Streuung, 
+# die nicht durch die festen Effekte erklärt wird, liegt bei 769%. 
+
+# Ratio test
+anova(model_ri_policy, model_linear_policy, data = data_CTIS, REML = FALSE)
+# effect is significant
+# calculate conditional AIC -> negative, check if it makes sense
+cAIC(model_linear_policy)
+cAIC(model_ri_policy)
+```
+
+
+```{r Modellierung mit Polynomen für das Datum}
+# not a good fit
+ggplot(data = data_CTIS, mapping = aes(x = data.survey_date, y = anxious_7d)) +
+  geom_line()
+
+data_ctis_wochentag <- data_CTIS %>% mutate(wochentag = weekdays(data.survey_date), 
+                                            tag = 1:nrow(data_CTIS)) %>% drop_na()
+
+model_pol3 <- lm(formula = anxious_7d ~ tag + I(tag^2) + I(tag^3),
+data = data_ctis_wochentag)
+summary(model_pol3)
+
+# 5th grade
+model_pol5 <- lm(formula = anxious_7d ~ tag + I(tag^2) + I(tag^3) + I(tag^4) + I(tag^5),
+data = data_ctis_wochentag)
+summary(model_pol5)
+
+
+# 10th grade
+model_pol10 <- lm(formula = anxious_7d ~ tag + I(tag^2) + I(tag^3) + 
+                    I(tag^4) + I(tag^5) + I(tag^6) + I(tag^7) + I(tag^8) + 
+                    I(tag^9) + I(tag^10),
+data = data_ctis_wochentag)
+summary(model_pol10)
+
+# Graphischer Vergleich von beobachteter und gesch¨atzter Kurve:
+data_ctis_wochentag$fitted_polynom3 <- model_pol3$fitted.values
+plot_data <- data_ctis_wochentag %>%
+pivot_longer(cols = c("anxious_7d", "fitted_polynom3"), names_to = "model",
+values_to = "anxious_7d")
+ggplot(data = plot_data, mapping = aes(x = data.survey_date, y = anxious_7d, 
+                                       col = model)) +
+geom_line()
+
+# plot 5th grade
+data_ctis_wochentag$fitted_polynom5 <- model_pol5$fitted.values
+plot_data_5 <- data_ctis_wochentag %>%
+pivot_longer(cols = c("anxious_7d", "fitted_polynom5"), names_to = "model",
+values_to = "anxious_7d")
+ggplot(data = plot_data_5, mapping = aes(x = data.survey_date, y = anxious_7d, 
+                                       col = model)) +
+geom_line()
+
+
+# plot 10th grade
+data_ctis_wochentag$fitted_polynom10 <- model_pol10$fitted.values
+plot_data_10 <- data_ctis_wochentag %>%
+pivot_longer(cols = c("anxious_7d", "fitted_polynom10"), names_to = "model",
+values_to = "anxious_7d")
+ggplot(data = plot_data_10, mapping = aes(x = data.survey_date, y = anxious_7d, 
+                                       col = model)) +
+geom_line()
+
+
+# try 20th grade
+model_pol20 <- lm(formula = anxious_7d ~ tag + I(tag^2) + I(tag^3) + 
+                    I(tag^4) + I(tag^5) + I(tag^6) + I(tag^7) + I(tag^8) + 
+                    I(tag^9) + I(tag^10) + I(tag^11) + I(tag^12) + 
+                    I(tag^13) + I(tag^14) + I(tag^15) + 
+                    I(tag^16) + I(tag^17) + 
+                    I(tag^18) + I(tag^19) + I(tag^20),
+data = data_ctis_wochentag)
+summary(model_pol20)
+
+# plot 20th grade
+data_ctis_wochentag$fitted_polynom20 <- model_pol20$fitted.values
+plot_data_20 <- data_ctis_wochentag %>%
+pivot_longer(cols = c("anxious_7d", "fitted_polynom20"), names_to = "model",
+values_to = "anxious_7d")
+ggplot(data = plot_data_20, mapping = aes(x = data.survey_date, y = anxious_7d, 
+                                       col = model)) +
+geom_line()
+
+# try 40th grade
+model_pol40 <- lm(formula = anxious_7d ~ tag + I(tag^2) + I(tag^3) + 
+                    I(tag^4) + I(tag^5) + I(tag^6) + I(tag^7) + I(tag^8) + 
+                    I(tag^9) + I(tag^10) + I(tag^11) + I(tag^12) + 
+                    I(tag^13) + I(tag^14) + I(tag^15) + 
+                    I(tag^16) + I(tag^17) + 
+                    I(tag^18) + I(tag^19) + I(tag^20) + I(tag^21) + I(tag^22) + 
+                    I(tag^23) +  I(tag^24) + I(tag^25) + I(tag^26) + 
+                    I(tag^27) + I(tag^28) + 
+                    I(tag^29) + I(tag^30) + I(tag^31) + I(tag^32) + 
+                    I(tag^33) + I(tag^34) + I(tag^35) + 
+                    I(tag^36) + I(tag^37) + 
+                    I(tag^38) + I(tag^39) + I(tag^40),
+data = data_ctis_wochentag)
+summary(model_pol40)
+
+# plot 40th grade
+data_ctis_wochentag$fitted_polynom40 <- model_pol40$fitted.values
+plot_data_40 <- data_ctis_wochentag %>%
+pivot_longer(cols = c("anxious_7d", "fitted_polynom40"), names_to = "model",
+values_to = "anxious_7d")
+ggplot(data = plot_data_40, mapping = aes(x = data.survey_date, y = anxious_7d, 
+                                       col = model)) +
+geom_line()
+```
+
+```{r Splines}
+
+# B-Spline-Modelle:
+# Zur besseren Ubersicht in einem Plot nur 1000,1500,2000,800 Knoten ¨
+ms <- c(1000,1500,2000,800)
+#Initialisieren
+bs_data <- data_ctis_wochentag[,c("anxious_7d","data.survey_date")]
+bs_data$fitted010 <- numeric(length = nrow(bs_data))
+bs_data$fitted020 <- numeric(length = nrow(bs_data))
+bs_data$fitted050 <- numeric(length = nrow(bs_data))
+bs_data$fitted100 <- numeric(length = nrow(bs_data))
+for (i in 1:4) {
+m <- ms[i]
+#Modell mit B-Splines
+knots <- seq(data_ctis_wochentag$data.survey_date[1],data_ctis_wochentag$data.survey_date[nrow(data_ctis_wochentag)],length.out=m)
+fit <- lm(anxious_7d ~ bs(data.survey_date, knots = knots, degree = 3), data_ctis_wochentag)
+#Fitted Values speichern
+bs_data[i+2] <- fit$fitted.values
+}
+#Plot
+plot_data_splines <- bs_data %>% gather(model, fitted, fitted010:fitted100)
+ggplot(data = plot_data_splines) +
+geom_line(mapping = aes(x = data.survey_date, y = fitted, col = model), size=1.5) +
+geom_line(mapping = aes(x = data.survey_date, y = anxious_7d)) +
+facet_wrap(~model,nrow=4)  +
+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
