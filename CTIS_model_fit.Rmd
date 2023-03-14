@@ -34,8 +34,8 @@ library(splines)
 
 ```{r include=FALSE}
 CTIS_micro <- readRDS("~/CTIS-Seminar/data/protected_data/CTIS_microdata_cleanV3.RDS")
-
 CTIS_macro <- readRDS("~/CTIS-Seminar/data/data_CTIS_policy.RDS")
+data_CTIS_policy <- readRDS("data/data_CTIS_policy.RDS")
 set.seed(2507)
 CTIS_micro$anxious <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
 
@@ -101,9 +101,9 @@ p_policy <- ncol(data_ctis_policy_model) - 1
 p_policy
 
 set.seed(123)
-ind_train_policy <- sample(x = 1:n, size = ceiling(0.8 * n))
+ind_train_policy <- sample(x = 1:n_policy, size = ceiling(0.8 * n_policy))
 set_train_policy <- data_ctis_policy_model[ind_train_policy,] ## dataset
-ind_test_policy <- setdiff(x = 1:n, ind_train_policy)
+ind_test_policy <- setdiff(x = 1:n_policy, ind_train_policy)
 set_test_policy <- data_ctis_policy_model[ind_test_policy, ] ## dataset
 
 ## remove nas in set_train
