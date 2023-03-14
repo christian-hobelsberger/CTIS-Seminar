@@ -33,8 +33,8 @@ library(splines)
 ```
 
 ```{r include=FALSE}
-CTIS_micro <- readRDS("~/CTIS-Seminar/data/protected_data/CTIS_microdata_cleanV3.RDS")
-CTIS_macro <- readRDS("~/CTIS-Seminar/data/data_CTIS_policy.RDS")
+CTIS_micro <- readRDS("data/protected_data/CTIS_microdata_cleanV4.RDS")
+CTIS_macro <- readRDS("data/data_CTIS_policy.RDS")
 data_CTIS_policy <- readRDS("data/data_CTIS_policy.RDS")
 set.seed(2507)
 CTIS_micro$anxious <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
