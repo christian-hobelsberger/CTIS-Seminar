@@ -32,33 +32,17 @@ library(cAIC4)
 library(splines)
 ```
 
+### Setup for modelling
 ```{r include=FALSE}
 CTIS_micro <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
 CTIS_macro <- readRDS("data/data_CTIS_policy.RDS")
 data_CTIS_policy <- readRDS("data/data_CTIS_policy.RDS")
 set.seed(2507)
 CTIS_micro$anxious <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
-
-
 CTIS_micro$depressed <- ifelse(CTIS_micro$D2 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
 CTIS_micro$V11[CTIS_micro$E3 %in% "Male" & is.na(CTIS_micro$V11)] <- "No"
 CTIS_micro$E5 <- as.numeric(CTIS_micro$E5)
 CTIS_micro$E7a <- as.numeric(CTIS_micro$E7a)
-
-```
-
-### Setup for microdata model
-```{r}
-# Setup for microdata model
-CTIS_micro <- readRDS("data/protected_data/CTIS_microdata_cleanV4.RDS")
-set.seed(2507)
-CTIS_micro$anxious <- ifelse(CTIS_micro$D1 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
-
-CTIS_micro$depressed <- ifelse(CTIS_micro$D2 %in% levels(CTIS_micro$D1)[4:5], TRUE, FALSE )
-CTIS_micro$V11[CTIS_micro$E3 %in% "Male" & is.na(CTIS_micro$V11)] <- "No"
-CTIS_micro$E5 <- as.numeric(CTIS_micro$E5)
-CTIS_micro$E7a <- as.numeric(CTIS_micro$E7a)
-
 ```
 
 # Microdata logistic regression model
@@ -155,21 +139,18 @@ y_train_policy <- set_train_policy$anxious_7d
 predict_train_policy <- matrix(data = 0, nrow = nrow(set_train_policy), ncol = 3)
 
 
-predict_train_policy[, 1] <- predict(object = model_unpenalized,
-newdata = set_train_policy[, 2:10])
 
-
-predict_train_policy[, 2] <- predict.glmnet(object = model_ridge_policy,
+predict_train_policy[, 1] <- predict.glmnet(object = model_ridge_policy,
 newx = data.matrix(set_train_policy[,  2:10]),
 s = lambda_ridge_policy)
 
-predict_train_policy[, 3] <- predict.glmnet(object = model_lasso_policy,
+predict_train_policy[, 2] <- predict.glmnet(object = model_lasso_policy,
 newx = data.matrix(set_train_policy[,  2:10]),
 s = lambda_lasso_policy)
 
-MSE_train_policy <- rep(x = 0, length.out = 3)
+MSE_train_policy <- rep(x = 0, length.out = 2)
 
-for (i in 1:3) {
+for (i in 1:2) {
 MSE_train_policy[i] = mean((y_train_policy - predict_train_policy[, i])^2)
 }
 MSE_train_policy
@@ -183,17 +164,14 @@ set_test_policy <- set_test_policy %>% drop_na()
 
 y_test_policy <- set_test_policy$anxious_7d
 predict_test_policy <- matrix(data = 0, nrow = nrow(set_test_policy), ncol = 3)
- 
 
-predict_test_policy[, 1] <- predict(object = model_unpenalized, newdata = set_test_policy[,  2:10]) 
-
-predict_test_policy[, 2] <- predict.glmnet(object = model_ridge_policy,
+predict_test_policy[, 1] <- predict.glmnet(object = model_ridge_policy,
 newx = data.matrix(set_test_policy[,  2:10]),
 s = lambda_ridge_policy)
-predict_test_policy[, 3] <- predict.glmnet(object = model_lasso_policy,
+predict_test_policy[, 2] <- predict.glmnet(object = model_lasso_policy,
 newx = data.matrix(set_test_policy[,  2:10]), s = lambda_lasso_policy)
-MSE_test_policy <- rep(x = 0, length.out = 3)
-for (i in 1:3) {
+MSE_test_policy <- rep(x = 0, length.out = 2)
+for (i in 1:2) {
 MSE_test_policy[i] = mean((y_test_policy - predict_test_policy[, i])^2)
 }
 MSE_test_policy
@@ -204,13 +182,6 @@ format(MSE_test_policy, scientific = FALSE)
 ## Model with lasso regularisierung
 coef_lasso_policy <- model_lasso_policy$beta[, which(model_lasso_policy$lambda == lambda_lasso_policy)]
 coef_lasso_policy
-
-# Stepwise Selection per AIC
-coef_AIC_policy <- stepAIC(object = model_unpenalized_policy,
-scope = list(upper = ~ ., lower = ~ 1), direction = "both")
-
-coef_AIC_policy
-
 
 # Ridge-Regularisierung
 # Coefficients path plot
