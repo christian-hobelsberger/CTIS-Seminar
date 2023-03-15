@@ -6,7 +6,7 @@ output:
   html_document: default
 ---
 ```{r setup, include=FALSE}
-# CTIS_micro <- readRDS("data/protected_data/CTIS_microdata_cleanV4.RDS")
+# CTIS_micro <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
 # 
 # # E4 = Age, E3 = Gender, E8 = Education, E2 = Where do you live, V11 = Pregnant
 # 

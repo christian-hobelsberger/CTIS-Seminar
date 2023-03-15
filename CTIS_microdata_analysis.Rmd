@@ -11,7 +11,7 @@ library(lubridate)
 library(ggpubr)
 
 # Loading the microdata
-CTIS_microdata <- readRDS("data/protected_data/CTIS_microdata_cleanV4.RDS")
+CTIS_microdata <- readRDS("data/protected_data/CTIS_microdata_cleanV3.RDS")
 ```
 
 ```{r Create tables}
